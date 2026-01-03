@@ -1,0 +1,57 @@
+{
+  "name": "re-observatory",
+  "version": "1.0.0",
+  "description": "Interactive canvas-based reverse engineering tool that provides visual binary analysis through draggable function nodes, control flow graphs, and real-time decompilation. Built with Electron, React, Python, Ghidra, and pwndbg, with optional AI assistance via MCP server.",
+  "main": "electron/main.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+  "start": "electron .",
+  "dev": "webpack serve --mode development",
+  "build": "webpack --mode production",
+  "build:linux": "electron-builder --linux",
+  "build:mac": "electron-builder --mac",
+  "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mammbo/RE-Observatory.git"
+  },
+  "keywords": [],
+  "author": "Daniel Alvarez (Mammbo)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mammbo/RE-Observatory/issues"
+  },
+  "homepage": "https://github.com/Mammbo/RE-Observatory#readme",
+  "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
+    "@babel/preset-react": "^7.28.5",
+    "babel-loader": "^10.0.0",
+    "css-loader": "^7.1.2",
+    "electron": "^39.2.7",
+    "electron-builder": "^26.0.12",
+    "html-webpack-plugin": "^5.6.5",
+    "postcss-loader": "^8.2.0",
+    "style-loader": "^4.0.0",
+    "webpack": "^5.104.1",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "@tailwindcss/postcss": "^4.1.18",
+    "autoprefixer": "^10.4.23",
+    "better-sqlite3": "^12.5.0",
+    "cytoscape": "^3.33.1",
+    "cytoscape-dagre": "^2.5.0",
+    "postcss": "^8.5.6",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "reactflow": "^11.11.4",
+    "tailwindcss": "^4.1.18",
+    "zustand": "^5.0.9"
+  }
+}
