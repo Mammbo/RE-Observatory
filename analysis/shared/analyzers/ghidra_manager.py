@@ -281,7 +281,7 @@ class GhidraManager:
         Returns:
             {
             "nodes": [ {id, start, end} ],
-            "edges": [ {src, dst, type} ]
+            "edges": [ {src, dst, type} ]  # includes edges to external blocks
             }
         """
         if self.current_program is None:
@@ -294,22 +294,20 @@ class GhidraManager:
         BasicBlockModel = jpype.JClass(
             "ghidra.program.model.block.BasicBlockModel"
         )
-        TaskMonitor = jpype.JClass(
-            "ghidra.util.task.TaskMonitor"
-        )
+        TaskMonitor = jpype.JClass("ghidra.util.task.TaskMonitor")
 
-        program = self.current_program
         monitor = TaskMonitor.DUMMY
-        bbm = BasicBlockModel(program)
+        bbm = BasicBlockModel(self.current_program)
 
-        blocks = list(
-            bbm.getCodeBlocksContaining(func.getEntryPoint(), monitor)
-        )
+        # Get ALL blocks within the function's body
+        block_iter = bbm.getCodeBlocksContaining(func.getBody(), monitor)
 
         nodes = {}
         edges = []
 
-        for block in blocks:
+        # Single pass: collect nodes and edges together
+        while block_iter.hasNext():
+            block = block_iter.next()
             start = block.getFirstStartAddress().getOffset()
             end = block.getMaxAddress().getOffset()
             node_id = hex(start)
@@ -320,8 +318,6 @@ class GhidraManager:
                 "end": hex(end)
             }
 
-            nodes_ids = set(nodes.keys())
-
             dests = block.getDestinations(monitor)
             while dests.hasNext():
                 ref = dests.next()
@@ -329,12 +325,9 @@ class GhidraManager:
                 if dst_block is None:
                     continue
 
-                dst_start = dst_block.getFirstStartAddress().getOffset()
-                if dst_start not in nodes:
-                    continue
                 edges.append({
                     "src": node_id,
-                    "dst": hex(dst_start),
+                    "dst": hex(dst_block.getFirstStartAddress().getOffset()),
                     "type": ref.getFlowType().toString()
                 })
 
