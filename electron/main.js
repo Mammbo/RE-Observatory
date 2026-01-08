@@ -1,7 +1,8 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const pythonManager = require('./python-manager');
-const wsClient = require('./websocket-client')
+const wsClient = require('./websocket-client');
+const { send } = require('process');
 
 let mainWindow;
 
@@ -49,8 +50,17 @@ const setupIPC = () => {
     if(mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('ws-message', message)
     }
-  })
+  });
+
+  const sendStatus = (connected) => { 
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('ws-status', { connected })
+    }
+  }
   
+  wsClient.on('connected', () => sendStatus(true));
+  wsClient.on('connected', () => sendStatus(false));
+
   console.log('✓ IPC handlers registered');
 };
 
