@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
+const pythonManager = require('./python-manager');
 
 let mainWindow;
 
@@ -118,7 +119,8 @@ const setupIPC = () => {
 
 
 // App Startup
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+    await pythonManager.start();
     setupIPC();
     createWindow();
     app.on('activate', () => {
@@ -130,6 +132,7 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    pythonManager.stop()
     app.quit();
   }
 });
