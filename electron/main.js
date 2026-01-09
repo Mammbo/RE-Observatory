@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const pythonManager = require('./python-manager');
 const wsClient = require('./websocket-client');
@@ -28,6 +28,11 @@ const createWindow= () => {
     mainWindow.loadFile(path.join(__dirname, '../build/index.html'));
   }
 
+  // Send initial connection status once window is ready
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.send('ws-status', { connected: wsClient.isConnected });
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -36,13 +41,24 @@ const createWindow= () => {
 //setUp IPC handlers
 
 const setupIPC = () => {
-  // set up IPC handlers for websocket!
+  // File selection dialog
+  ipcMain.handle('select-binary', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openFile'],
+      filters: [
+        { name: 'All Files', extensions: ['*'] }
+      ]
+    });
+    return result.canceled ? null : result.filePaths[0];
+  });
 
-  ipcMain.handle('ws-send', async (event, command, data) => { 
-    return wsClient.request(command, data)
-  })
+  // WebSocket send handlers
+  ipcMain.handle('ws-send', async (event, command, data) => {
+    wsClient.send(command, data);
+    return { sent: true };  // Response comes via events, not here
+  });
 
-  ipcMain.on('ws-send-async', (event, command, data) => { 
+  ipcMain.on('ws-send-async', (event, command, data) => {
     wsClient.send(command, data)
   });
 
@@ -59,7 +75,7 @@ const setupIPC = () => {
   }
   
   wsClient.on('connected', () => sendStatus(true));
-  wsClient.on('connected', () => sendStatus(false));
+  wsClient.on('disconnected', () => sendStatus(false));
 
   console.log('✓ IPC handlers registered');
 };

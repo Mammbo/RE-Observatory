@@ -7,12 +7,13 @@
     "doc": "docs"
   },
   "scripts": {
-  "start": "electron .",
-  "dev": "webpack serve --mode development",
-  "build": "webpack --mode production",
-  "build:linux": "electron-builder --linux",
-  "build:mac": "electron-builder --mac",
-  "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "electron .",
+    "dev": "webpack serve --mode development",
+    "dev:electron": "NODE_ENV=development concurrently \"npm run dev\" \"wait-on http://localhost:8080 && electron .\"",
+    "build": "webpack --mode production",
+    "build:linux": "electron-builder --linux",
+    "build:mac": "electron-builder --mac",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -30,12 +31,14 @@
     "@babel/preset-env": "^7.28.5",
     "@babel/preset-react": "^7.28.5",
     "babel-loader": "^10.0.0",
+    "concurrently": "^9.2.1",
     "css-loader": "^7.1.2",
     "electron": "^39.2.7",
     "electron-builder": "^26.0.12",
     "html-webpack-plugin": "^5.6.5",
     "postcss-loader": "^8.2.0",
     "style-loader": "^4.0.0",
+    "wait-on": "^9.0.3",
     "webpack": "^5.104.1",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2"
@@ -53,5 +56,17 @@
     "reactflow": "^11.11.4",
     "tailwindcss": "^4.1.18",
     "zustand": "^5.0.9"
+  },
+  "build": {
+    "extraResources": [
+      {
+        "from": "venv",
+        "to": "venv"
+      },
+      {
+        "from": "analysis",
+        "to": "analysis"
+      }
+    ]
   }
 }

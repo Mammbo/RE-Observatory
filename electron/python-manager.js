@@ -22,9 +22,25 @@ class PythonManager {
         return path.join(__dirname, '..', 'analysis', 'websocket_server', 'server.py');
     }
 
-    getPythonPath() { 
-        const venvPython = path.join(__dirname, '..', 'bin', 'python');
-        return venvPython;
+    getPythonPath() {
+        // Allow override via environment variable
+        if (process.env.PYTHON_PATH) {
+            return process.env.PYTHON_PATH;
+        }
+
+        // Production: venv bundled in app resources
+        if (app.isPackaged) {
+            const isWindows = process.platform === 'win32';
+            return path.join(
+                process.resourcesPath,
+                'venv',
+                isWindows ? 'Scripts' : 'bin',
+                isWindows ? 'python.exe' : 'python'
+            );
+        }
+
+        // Development: venv in project root
+        return path.join(__dirname, '..', 'venv', 'bin', 'python');
     }
 
     /** 
