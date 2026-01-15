@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAnalysis } from './hooks/useAnalysis';
 import SideBar from './components/Sidebar/SideBar'
+import useSideBarStore from './store/sideBarStore';
+import CanvasView from './components/Canvas/GraphDisplay';
 
 function App() {
   const {
@@ -16,6 +18,8 @@ function App() {
 
   const [binaryPath, setBinaryPath] = useState(null);
   const [selectedFunction, setSelectedFunction] = useState('');
+
+  const {activePanel, panelWidth} = useSideBarStore();
 
   // Log state changes to console for testing
   useEffect(() => {
@@ -72,8 +76,15 @@ function App() {
   };
 
   return (
-    <div>
+    <div className="flex h-screen">
       <SideBar />
+      {/* Main content area - offset by sidebar width */}
+      <main 
+        className="flex-1 h-screen"
+        style={{ marginLeft: `${64 + (activePanel ? panelWidth : 0)}px` }}
+      >
+        <CanvasView />
+      </main>
     </div>
   );
 };
