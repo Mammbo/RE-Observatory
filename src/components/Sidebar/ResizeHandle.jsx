@@ -1,22 +1,17 @@
-import React from 'react'
-import { useSideBarStore } from '../../store/sideBarStore';
+import useSideBarStore from '../../store/sideBarStore';
 
-const ResizableHandle = () => { 
+const ResizableHandle = () => {    
     const { panelWidth, minPanelWidth, maxPanelWidth, setPanelWidth } = useSideBarStore();
-    
-    
     const handleMouseDown = (e) => {
         e.preventDefault();
         const x = e.clientX;
-        const sbWidth = window.getComputedStyle(panelRef.current).width;
         const initialWidth = panelWidth;
 
             const mouseMoveHandler = (e) => { 
-                const dx = x - e.clientX; // Resize from left to right
-                dx = e.clientX - x; // Resix=ze from right to left
+                const dx = e.clientX - x; // Resize from left to right
                 const newWidth = initialWidth + dx;
 
-                if (newWidth >= minPanelWidth || newWidth <= maxPanelWidth) {
+                if (newWidth >= minPanelWidth && newWidth <= maxPanelWidth) {
                     setPanelWidth(newWidth);
                 }
             };

@@ -6,21 +6,23 @@
 //    - .panel-section, .panel-row, .panel-label, .panel-value
 
 import { create } from 'zustand';
+import ExpandedPanel from '../components/Sidebar/ExpandedPanel';
 
 export const useSideBarStore = create((set) => ({ 
-    activePanel: null | 'binary' | 'signals' | 'analysis',
+    activePanel: null,
     panelWidth: 320, 
-    minPanelWidth: 240, 
+    minPanelWidth: 100, 
     maxPanelWidth: 600, 
     isResizing: false,
 
-    togglePanel: (panelName) => set(() => ({activePanel: panelName})), 
-    closePanel: () => set(() => ({activePanel: null})), 
+    togglePanel: (panelName) => set((state) => ({activePanel: state.activePanel === panelName ? null : panelName})), 
     setPanelWidth: (width) => set((state) => { 
-        if (state >= state.minPanelWidth || state <= state.maxPanelWidth) {
+        if (width >= state.minPanelWidth && width <= state.maxPanelWidth) {
             return { panelWidth: width }
         }
         return state;
     }),
     setIsResizing: (bool) => set(() => ({isResizing: bool}))
 }));
+
+export default useSideBarStore
