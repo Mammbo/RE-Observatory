@@ -1,12 +1,86 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/*stylelint-disable*/
+@theme {
+  /* ==============================
+     BACKGROUND (Surfaces)
+     ============================== */
+  --color-primary:        #1e1e1e; /* main app background */
+  --color-secondary:      #262626; /* panels, sidebars */
+  --color-elevated:       #2a2a2a; /* modals, popovers */
+  --color-hover:          #363636; /* hover on surfaces */
+  --color-active:         #3f3f3f; /* active / pressed */
+
+  /* ==============================
+     TEXT
+     ============================== */
+  --color-text-primary:      #dadada; /* main text */
+  --color-text-secondary:    #bababa; /* muted text */
+  --color-text-tertiary:     #999999; /* faint / metadata */
+  --color-text-inverse:      #1e1e1e; /* text on light accent */
+
+  /* ==============================
+     ACCENT (User-configurable)
+     ============================== */
+  --accent-h:          254;
+  --accent-s:          80%;
+  --accent-l:          68%;
+
+  --color-accent:            hsl(var(--accent-h), var(--accent-s), var(--accent-l));
+  --color-accent-hover:      hsl(var(--accent-h), var(--accent-s), 62%);
+  --color-accent-active:     hsl(var(--accent-h), var(--accent-s), 56%);
+
+  --color-text-accent:       var(--accent);
+  --color-text-accent-hover: var(--accent-hover);
+
+  /* ==============================
+     INTERACTIVE ELEMENTS
+     ============================== */
+  --interactive-bg:            #2a2a2a;
+  --interactive-bg-hover:      #363636;
+  --interactive-bg-active:     #3f3f3f;
+
+  --interactive-accent-bg:     var(--accent);
+  --interactive-accent-hover:  var(--accent-hover);
+
+  /* ==============================
+     BORDERS & DIVIDERS
+     ============================== */
+  --border-default:     #363636;
+  --border-hover:       #555555;
+  --border-focus:       var(--accent);
+
+  /* ==============================
+     STATUS COLORS
+     ============================== */
+  --color-success:      #44cf6e;
+  --color-success-bg:   rgba(68, 207, 110, 0.15);
+
+  --color-warning:      #e0de71;
+  --color-warning-bg:   rgba(224, 222, 113, 0.15);
+
+  --color-error:        #fb464c;
+  --color-error-bg:     rgba(251, 70, 76, 0.15);
+
+  /* ==============================
+     SELECTION & CARET
+     ============================== */
+  --selection-bg:       rgba(168, 130, 255, 0.25);
+  --caret-color:        var(--accent);
 }
+
+
+@layer components { 
+  .sidebar-icon { 
+    @apply relative flex items-center justify-center h-12 w-12 bg-elevated text-accent hover:bg-active hover:text-accent-hover  transition-all rounded-xl duration-300 ease-linear cursor-pointer shadow-lg;
+  }
+
+  .sidebar-tooltip { 
+    @apply absolute w-auto p-2 m-2 min-w-max left-14 rounded-md shadow-md text-accent bg-elevated font-bold duration-100 transition-all origin-left scale-0;
+  }
+}
+
+
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -23,11 +97,4 @@ body {
 
 button {
   -webkit-app-region: no-drag;
-}
-
-#root {
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-  flex-direction: column;
 }
