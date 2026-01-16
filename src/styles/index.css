@@ -46,9 +46,9 @@
   /* ==============================
      BORDERS & DIVIDERS
      ============================== */
-  --border-default:     #363636;
-  --border-hover:       #555555;
-  --border-focus:       var(--accent);
+  --color-border-default:     #363636;
+  --color-border-hover:       #555555;
+  --color-border-focus:       var(--accent);
 
   /* ==============================
      STATUS COLORS
@@ -76,20 +76,14 @@
   }
 
   .sidebar-tooltip { 
-    @apply absolute w-auto p-2 m-2 min-w-max left-14 z-20 rounded-md shadow-md text-accent bg-elevated font-bold duration-100 transition-all origin-left scale-0;
+    @apply absolute w-auto p-2 m-2 min-w-max left-14 z-50 rounded-md shadow-md text-accent bg-elevated font-bold duration-100 transition-all origin-left scale-0;
   }
 
-  .sidebar-icon-selected { 
+  .sidebar-icon-selected {
     @apply  relative flex items-center justify-center h-12 w-12 bg-active text-accent-hover cursor-pointer shadow-lg
   }
+
 }
-
-
-/*
-animation for panels
-
-
-*/
 
 
 

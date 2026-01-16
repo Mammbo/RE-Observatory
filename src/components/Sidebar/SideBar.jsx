@@ -20,7 +20,7 @@ const SideBar = () => {
     };
 
     return (
-    <div className="fixed top-0 left-0 h-screen w-16 m-0 flex flex-col items-center py-6 gap-y-3 bg-secondary text-text-primary text-shadow-lg border-r-text-primary border-r-2">
+    <div className="fixed top-0 left-0 h-screen w-16 m-0 flex flex-col items-center py-6 gap-y-3 bg-secondary text-text-primary text-shadow-lg border-r-2 border-r-border-default z-50">
         <SideBarButton icon={<LuBinary size="32"/>} text={"Binary Overview"} onClick={() => togglePanel('binary')} isActive={activePanel === "binary"}/>
         <SideBarButton icon={<RiSignalTowerFill size="32"/>} text={"Triage Signals"} onClick={() => togglePanel('signals')} isActive={activePanel === "signals"}/>
         <SideBarButton icon={<TbBinaryTree size="32"/>} text={"Graph Toggles"}/>

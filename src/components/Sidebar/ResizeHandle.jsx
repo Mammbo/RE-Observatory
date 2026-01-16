@@ -27,7 +27,7 @@ const ResizableHandle = () => {
     return (
         <div
             onMouseDown={handleMouseDown}
-            className="w-1 h-full cursor-col-resize bg-gray-700 hover:bg-blue-500 transition-colors"
+            className="w-1 h-full cursor-col-resize bg-border-default hover:bg-border-hover transition-colors"
         />
     );
 }

@@ -12,7 +12,7 @@ export const useSideBarStore = create((set) => ({
     activePanel: null,
     panelWidth: 320, 
     minPanelWidth: 100, 
-    maxPanelWidth: 1500, 
+    maxPanelWidth: 1000, 
     isResizing: false,
 
     togglePanel: (panelName) => set((state) => ({activePanel: state.activePanel === panelName ? null : panelName})), 

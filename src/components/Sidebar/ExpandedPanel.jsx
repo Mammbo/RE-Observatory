@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ResizableHandle from "./ResizeHandle";
 
-const ExpandedPanel = ({activePanel, width, children}) => { 
+const ExpandedPanel = ({activePanel, width, children}) => {
     const [shouldRender, setShouldRender] = useState(false);
     const [isVisible, setIsVisible] = useState(false);
 

@@ -76,11 +76,11 @@ function App() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-primary">
       <SideBar />
       {/* Main content area - offset by sidebar width */}
-      <main 
-        className="flex-1 h-screen"
+      <main
+        className="flex-1 h-screen transition-[margin] duration-300 ease-in-out"
         style={{ marginLeft: `${64 + (activePanel ? panelWidth : 0)}px` }}
       >
         <CanvasView />
