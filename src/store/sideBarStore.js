@@ -6,7 +6,6 @@
 //    - .panel-section, .panel-row, .panel-label, .panel-value
 
 import { create } from 'zustand';
-import ExpandedPanel from '../components/Sidebar/ExpandedPanel';
 
 export const useSideBarStore = create((set) => ({ 
     activePanel: null,

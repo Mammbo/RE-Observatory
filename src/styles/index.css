@@ -67,6 +67,26 @@
      ============================== */
   --selection-bg:       rgba(168, 130, 255, 0.25);
   --caret-color:        var(--accent);
+
+  /* ==============================
+     NODE COLORS (Catppuccin Mocha)
+     ============================== */
+  --color-node-bg:          #1e1e2e;
+  --color-node-surface:     #313244;
+  --color-node-overlay:     #11111b;
+  --color-node-border:      #313244;
+  --color-node-text:        #cdd6f4;
+  --color-node-subtext:     #bac2de;
+  --color-node-muted:       #a6adc8;
+
+  /* Node Accent Colors */
+  --color-node-mauve:       #cba6f7;
+  --color-node-blue:        #89b4fa;
+  --color-node-teal:        #94e2d5;
+  --color-node-green:       #a6e3a1;
+  --color-node-peach:       #fab387;
+  --color-node-yellow:      #f9e2af;
+  --color-node-red:         #f38ba8;
 }
 
 
@@ -83,6 +103,218 @@
     @apply  relative flex items-center justify-center h-12 w-12 bg-active text-accent-hover cursor-pointer shadow-lg
   }
 
+  /* ==============================
+     NODES - Base Styles
+     ============================== */
+  .node-base {
+    @apply flex flex-col overflow-hidden;
+    background: var(--color-node-bg);
+    border: 2px solid var(--color-node-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .node-content {
+    @apply relative flex-1 overflow-hidden;
+  }
+
+  .node-layer {
+    @apply absolute inset-0 transition-all duration-300 ease-out;
+  }
+
+  .node-layer-visible {
+    @apply opacity-100 translate-y-0;
+  }
+
+  .node-layer-hidden-up {
+    @apply opacity-0 -translate-y-4 pointer-events-none;
+  }
+
+  .node-layer-hidden-down {
+    @apply opacity-0 translate-y-4 pointer-events-none;
+  }
+   .address {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-node-red);
+  }
+
+   .type {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-node-blue);
+  }
+
+  /* ==============================
+     NODES - Note Node Specific
+     ============================== */
+  .note-preview {
+    @apply overflow-auto cursor-text;
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--color-node-text);
+  }
+
+  .note-editor {
+    padding: 14px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    border: none;
+    resize: none;
+    outline: none;
+    background: var(--color-node-bg);
+    color: var(--color-node-text);
+  }
+
+
+  /*NODE PANEL*/
+
+  .node-panel { 
+    @apply top-0 right-16 h-screen bg-primary flex origin-right transition-transform duration-300 ease-in-out
+  }
+  /* ==============================
+     NODES - Markdown Styles
+     ============================== */
+  .md-h1 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    padding-bottom: 8px;
+    color: var(--color-node-mauve);
+  }
+
+  .md-h2 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 16px 0 8px 0;
+    color: var(--color-node-blue);
+  }
+
+  .md-h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 12px 0 6px 0;
+    color: var(--color-node-teal);
+  }
+
+  .md-p {
+    margin: 8px 0;
+    color: var(--color-node-text);
+  }
+
+  .md-ul {
+    margin: 8px 0 8px 20px;
+    list-style-type: disc;
+  }
+
+  .md-ol {
+    margin: 8px 0 8px 20px;
+    list-style-type: decimal;
+  }
+
+  .md-li {
+    margin: 4px 0;
+    color: var(--color-node-subtext);
+  }
+
+  .md-code-inline {
+    background: var(--color-node-surface);
+    color: var(--color-node-red);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .md-code-block {
+    display: block;
+    background: var(--color-node-overlay);
+    color: var(--color-node-green);
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    overflow: auto;
+    margin: 8px 0;
+  }
+
+  .md-pre {
+    margin: 8px 0;
+    background: var(--color-node-overlay);
+    border-radius: 6px;
+    overflow: auto;
+  }
+
+  .md-blockquote {
+    border-left: 4px solid var(--color-node-mauve);
+    padding-left: 14px;
+    margin: 12px 0;
+    color: var(--color-node-muted);
+    font-style: italic;
+  }
+
+  .md-strong {
+    color: var(--color-node-peach);
+    font-weight: 600;
+  }
+
+  .md-em {
+    color: var(--color-node-yellow);
+  }
+
+  .md-a {
+    color: var(--color-node-blue);
+    text-decoration: underline;
+  }
+
+  .md-hr {
+    border: none;
+    border-top: 1px solid var(--color-node-surface);
+    margin: 16px 0;
+  }
+
+  /* ==============================
+     NODES - Custom Scrollbar
+     ============================== */
+  .node-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .node-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .node-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--color-node-surface);
+    border-radius: 3px;
+  }
+
+  .node-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--color-node-muted);
+  }
+
+  /* ==============================
+     NODES - Resize Handles
+     ============================== */
+  .node-resize-line {
+    border-color: var(--color-node-mauve) !important;
+    border-width: 2px !important;
+  }
+
+  .node-resize-handle {
+    width: 10px !important;
+    height: 10px !important;
+    background: var(--color-node-mauve) !important;
+    border: 2px solid var(--color-node-bg) !important;
+    border-radius: 3px !important;
+  }
+
+  .node-resize-handle:hover {
+    background: var(--color-node-blue) !important;
+  }
 }
 
 

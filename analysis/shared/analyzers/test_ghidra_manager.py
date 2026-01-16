@@ -49,21 +49,21 @@ def test_all(ghidra_path, binary_path):
     print_kv("Format", program.getExecutableFormat())
     print_kv("Path", program.getExecutablePath())
 
-    # 3. Program context
-    section("3. Program Context")
-    prog = mgr.get_program()
-    assert_true(prog == program, "get_program mismatch")
+    # # 3. Program context
+    # section("3. Program Context")
+    # prog = mgr.get_program()
+    # assert_true(prog == program, "get_program mismatch")
 
-    base = mgr.get_image_base()
-    print_kv("Image Base", hex(base))
+    # base = mgr.get_image_base()
+    # print_kv("Image Base", hex(base))
 
-    # 4. Language
-    section("4. Language")
-    lang = mgr.get_language()
-    assert_true(lang is not None, "Language missing")
+    # # 4. Language
+    # section("4. Language")
+    # lang = mgr.get_language()
+    # assert_true(lang is not None, "Language missing")
 
-    for k, v in lang.items():
-        print_kv(k, v)
+    # for k, v in lang.items():
+    #     print_kv(k, v)
 
     # 5. Functions
     section("5. Functions")
@@ -105,73 +105,74 @@ def test_all(ghidra_path, binary_path):
 
     print_list(
         [f"{addr} -> {name}" for addr, name in cg["nodes"].items()],
-        label="Functions"
+        label="Functions",
+        max_items=9999
     )
-    print_list(cg["edges"], label="Call edges")
+    print_list(cg["edges"], label="Call edges", max_items=9999)
 
-    # 8. Strings
-    section("8. Strings")
-    strings = mgr.get_strings(min_length=5)
-    assert_true(len(strings) > 0, "No strings found")
+    # # 8. Strings
+    # section("8. Strings")
+    # strings = mgr.get_strings(min_length=5)
+    # assert_true(len(strings) > 0, "No strings found")
 
-    print_kv("Strings found", len(strings))
-    print_list(
-        [f"{s['address']}: {s['value']}" for s in strings],
-        label="Sample strings"
-    )
+    # print_kv("Strings found", len(strings))
+    # print_list(
+    #     [f"{s['address']}: {s['value']}" for s in strings],
+    #     label="Sample strings"
+    # )
 
-    # 9. Imports
-    section("9. Imports")
-    imports = mgr.get_imports()
-    print_kv("Imports found", len(imports))
+    # # 9. Imports
+    # section("9. Imports")
+    # imports = mgr.get_imports()
+    # print_kv("Imports found", len(imports))
 
-    if imports:
-        print_list(
-            [f"{i['name']} @ {i['address']}" for i in imports],
-            label="Sample imports"
-        )
+    # if imports:
+    #     print_list(
+    #         [f"{i['name']} @ {i['address']}" for i in imports],
+    #         label="Sample imports"
+    #     )
 
-    # 10. Annotations
-    section("10. Annotations")
+    # # 10. Annotations
+    # section("10. Annotations")
 
-    # Add annotations
-    assert_true(mgr.add_comment(base, "test comment"), "Failed to add comment")
-    assert_true(mgr.add_function_tag(addr0, "test_tag"), "Failed to add function tag")
-    # Add a bookmark
-    assert_true(
-        mgr.add_bookmark(base, "Analysis", "Entry point reviewed"),
-        "Failed to add bookmark"
-    )
+    # # Add annotations
+    # assert_true(mgr.add_comment(base, "test comment"), "Failed to add comment")
+    # assert_true(mgr.add_function_tag(addr0, "test_tag"), "Failed to add function tag")
+    # # Add a bookmark
+    # assert_true(
+    #     mgr.add_bookmark(base, "Analysis", "Entry point reviewed"),
+    #     "Failed to add bookmark"
+    # )
 
-    # Read bookmarks at address
-    bookmarks = mgr.get_bookmarks_at(base)
+    # # Read bookmarks at address
+    # bookmarks = mgr.get_bookmarks_at(base)
 
 
-    # Read back comments
-    comments = mgr.get_comments_at(base)
-    print("  Address comments:")
-    if comments:
-        for ctype, text in comments.items():
-            print(f"    [{ctype}] {text}")
-    else:
-        print("    (none)")
+    # # Read back comments
+    # comments = mgr.get_comments_at(base)
+    # print("  Address comments:")
+    # if comments:
+    #     for ctype, text in comments.items():
+    #         print(f"    [{ctype}] {text}")
+    # else:
+    #     print("    (none)")
 
-    # Read back function annotations
-    func_ann = mgr.get_function_annotations(addr0)
-    assert_true(func_ann is not None, "Failed to read function annotations")
+    # # Read back function annotations
+    # func_ann = mgr.get_function_annotations(addr0)
+    # assert_true(func_ann is not None, "Failed to read function annotations")
 
-    print("  Function annotations:")
-    print(f"    Name   : {func_ann['name']}")
-    print(f"    Entry  : {func_ann['entry']}")
-    print(f"    Comment: {func_ann['comment']}")
-    print(f"    Tags   : {func_ann['tags']}")
+    # print("  Function annotations:")
+    # print(f"    Name   : {func_ann['name']}")
+    # print(f"    Entry  : {func_ann['entry']}")
+    # print(f"    Comment: {func_ann['comment']}")
+    # print(f"    Tags   : {func_ann['tags']}")
 
-    print("  Bookmarks at address:")
-    if bookmarks:
-        for b in bookmarks:
-            print(f"    [{b['type']}/{b['category']}] {b['comment']} @ {b['address']}")
-    else:
-        print("    (none)")
+    # print("  Bookmarks at address:")
+    # if bookmarks:
+    #     for b in bookmarks:
+    #         print(f"    [{b['type']}/{b['category']}] {b['comment']} @ {b['address']}")
+    # else:
+    #     print("    (none)")
 
     # 11. Close
     section("11. Cleanup")

@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { useAnalysis } from './hooks/useAnalysis';
 import SideBar from './components/Sidebar/SideBar'
 import useSideBarStore from './store/sideBarStore';
+import useCFGNodeStore from './store/cfgNodeStore';
 import CanvasView from './components/Canvas/GraphDisplay';
+import NodePanel from './components/Canvas/nodePanels';
 
 function App() {
   const {
@@ -20,6 +22,7 @@ function App() {
   const [selectedFunction, setSelectedFunction] = useState('');
 
   const {activePanel, panelWidth} = useSideBarStore();
+  const { activePanel: nodePanel, panelWidth: nodePanelWidth } = useCFGNodeStore();
 
   // Log state changes to console for testing
   useEffect(() => {
@@ -74,6 +77,16 @@ function App() {
     console.log('Decompiling function at:', selectedFunction);
     await decompileFunction(selectedFunction);
   };
+  const { registerPanel } = useCFGNodeStore();
+
+  useEffect(() => {
+      // Register test data - address must match data.src in GraphDisplay.jsx
+      registerPanel("0x4010000", {
+          functionName: "main",
+          cCode: "int main() { return 0; }"
+      });
+  }, []);
+
 
   return (
     <div className="flex h-screen bg-primary">
@@ -81,10 +94,14 @@ function App() {
       {/* Main content area - offset by sidebar width */}
       <main
         className="flex-1 h-screen transition-[margin] duration-300 ease-in-out"
-        style={{ marginLeft: `${64 + (activePanel ? panelWidth : 0)}px` }}
+        style={{
+          marginLeft: `${64 + (activePanel ? panelWidth : 0)}px`,
+          marginRight: `${nodePanel ? nodePanelWidth : 0}px`
+        }}
       >
         <CanvasView />
       </main>
+      <NodePanel />
     </div>
   );
 };

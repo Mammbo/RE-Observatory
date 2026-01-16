@@ -1,0 +1,33 @@
+// implement utility class no drig
+import {Handle, Position} from "@xyflow/react";
+import { useCFGNodeStore } from '../../store/cfgNodeStore';
+
+
+const CFGNode = ({data}) => {
+    const { togglePanel } = useCFGNodeStore();
+
+    return (
+        <div className="node-base nodrag w-50 h-25 cursor-pointer" onClick={() => togglePanel(data.src)}> 
+            <div className="node-content"> 
+                <div className="node-layer node-layer-visible">
+                    <div className="flex flex-col justify-center items-center ">
+                        <span className="address px-2 pt-4 rounded">{data.src}</span>
+                        <div className="border-b border-node-border w-45"></div>
+                        <span className="type px-2 pt-1 rounded">{data.type}james</span>
+                    </div>
+                </div>
+            </div>
+             {/* Handles for connections - each side has source + target */}                                                                                                                                                                                  
+            <Handle type="target" position={Position.Top} id="top-target" />                                                                                                                                                                                 
+            <Handle type="source" position={Position.Top} id="top-source" />                                                                                                                                                                                 
+            <Handle type="target" position={Position.Bottom} id="bottom-target" />                                                                                                                                                                           
+            <Handle type="source" position={Position.Bottom} id="bottom-source" />                                                                                                                                                                           
+            <Handle type="target" position={Position.Left} id="left-target" />                                                                                                                                                                               
+            <Handle type="source" position={Position.Left} id="left-source" />                                                                                                                                                                               
+            <Handle type="target" position={Position.Right} id="right-target" />                                                                                                                                                                             
+            <Handle type="source" position={Position.Right} id="right-source" />
+        </div>        
+    );
+};
+
+export default CFGNode;
