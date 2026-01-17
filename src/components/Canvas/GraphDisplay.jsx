@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 import '@xyflow/react/dist/style.css';
 import NoteNode from './NoteNode';
 import CFGNode from './CFGNode';
-import Flow from './AddNoteButton'
+import AddNodeButton from './AddNoteButton';
 
 // make a react hook that generates the amount of nodes edges and labels needed with the information needed per function.
 // use dagre to render the nodes
@@ -13,12 +13,21 @@ const initialNodes = [
     type: 'note',
     position: { x: 0, y: 0 },
     data: { label: 'Node 1' },
+    
   },
   {
     id: 'n2',
     type: 'CFG',
     position: { x: 100, y: 100 },
     data: { src: '0x4010000' },
+    deletable: false, 
+  },
+  {
+    id: 'n3',
+    type: 'CFG',
+    position: { x: 500, y: 100 },
+    data: { src: '0x4010014' },
+    deletable: false, 
   },
 ];
 
@@ -74,7 +83,7 @@ const CanvasView = () => {
                         <MiniMap nodeStrokeWidth={3} zoomable pannable />
                         <Background />
                         <Controls>
-                            <Flow />    
+                            <AddNodeButton />    
                         </Controls>    
                     </ReactFlow>
                 </ReactFlowProvider>

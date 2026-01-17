@@ -78,6 +78,7 @@
   --color-node-text:        #cdd6f4;
   --color-node-subtext:     #bac2de;
   --color-node-muted:       #a6adc8;
+  --color-node-selected:    #363636;
 
   /* Node Accent Colors */
   --color-node-mauve:       #cba6f7;
@@ -139,6 +140,12 @@
     color: var(--color-node-red);
   }
 
+  .node-selected {
+    background: var(--color-node-surface);
+    border-color: var(--color-node-mauve);
+    box-shadow: 0 0 0 1px var(--color-node-mauve), 0 4px 12px rgba(203, 166, 247, 0.2);
+  }
+
    .type {
     font-size: 20px;
     font-weight: 700;
@@ -167,7 +174,7 @@
     background: var(--color-node-bg);
     color: var(--color-node-text);
   }
-
+  
 
   /*NODE PANEL*/
 

@@ -85,6 +85,10 @@ function App() {
           functionName: "main",
           cCode: "int main() { return 0; }"
       });
+      registerPanel("0x4010014", { 
+        functionName: "fgets",
+        ccode: "lebron"
+      })
   }, []);
 
 

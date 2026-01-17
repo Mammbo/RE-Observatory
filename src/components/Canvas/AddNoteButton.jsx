@@ -1,21 +1,23 @@
-import { ReactFlow, Controls, ControlButton, useReactFlow } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-
+import { ControlButton, useReactFlow } from '@xyflow/react';
+import { FiPlus } from 'react-icons/fi';
 
 const AddNodeButton = () => {
+    const reactFlow = useReactFlow();
 
-    const handleAddNode = () => { 
+    const handleAddNode = () => {
+        reactFlow.addNodes({
+            id: `node-${Date.now()}`,
+            type: 'note',
+            position: { x: 100, y: 100 },
+            data: { label: 'New Note' },
+        });
+    };
 
-    }
-  return (
-    <ReactFlow nodes={[]} edges={[]} onInit={(reactFlowInstance) => {
-      // Optional: initialize flow
-    }}>
-      <Controls>
-        <AddNodeButton />
-      </Controls>
-    </ReactFlow>
-  );
-}   
+    return (
+        <ControlButton onClick={handleAddNode} title="Add Note">
+            <FiPlus />
+        </ControlButton>
+    );
+};
 
-export default Flow;
+export default AddNodeButton;

@@ -2,12 +2,12 @@
 import {Handle, Position} from "@xyflow/react";
 import { useCFGNodeStore } from '../../store/cfgNodeStore';
 
-
 const CFGNode = ({data}) => {
-    const { togglePanel } = useCFGNodeStore();
+    const { togglePanel, activePanel } = useCFGNodeStore();
+    const isActive = activePanel === data.src;
 
     return (
-        <div className="node-base nodrag w-50 h-25 cursor-pointer" onClick={() => togglePanel(data.src)}> 
+        <div className={`node-base nodrag w-50 h-25 cursor-pointer ${isActive ? 'node-selected node-layer' : 'transition-all duration-300 ease-out'}`} onClick={() => togglePanel(data.src)}> 
             <div className="node-content"> 
                 <div className="node-layer node-layer-visible">
                     <div className="flex flex-col justify-center items-center ">
