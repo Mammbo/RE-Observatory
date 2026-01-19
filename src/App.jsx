@@ -5,7 +5,7 @@ import useSideBarStore from './store/sideBarStore';
 import useCFGNodeStore from './store/cfgNodeStore';
 import CanvasView from './components/Canvas/GraphDisplay';
 import NodePanel from './components/Canvas/nodePanels';
-
+import UploadBinaryPage from './components/Layout/UploadBinaryPage';
 function App() {
   const {
     isConnected,
@@ -96,16 +96,24 @@ function App() {
     <div className="flex h-screen bg-primary">
       <SideBar />
       {/* Main content area - offset by sidebar width */}
-      <main
-        className="flex-1 h-screen transition-[margin] duration-300 ease-in-out"
-        style={{
-          marginLeft: `${64 + (activePanel ? panelWidth : 0)}px`,
-          marginRight: `${nodePanel ? nodePanelWidth : 0}px`
-        }}
-      >
-        <CanvasView />
-      </main>
-      <NodePanel />
+      <> 
+        {!binaryPath ? (
+         <UploadBinaryPage onSelectBinary={handleSelectBinary} />
+        ): (
+          <>
+             <main
+              className="flex-1 h-screen transition-[margin] duration-300 ease-in-out"
+              style={{
+                marginLeft: `${64 + (activePanel ? panelWidth : 0)}px`,
+                marginRight: `${nodePanel ? nodePanelWidth : 0}px`
+              }}
+            >
+              <CanvasView />
+            </main>
+            <NodePanel />
+          </>
+        )}
+      </>
     </div>
   );
 };
