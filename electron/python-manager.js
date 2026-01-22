@@ -1,5 +1,6 @@
 const { spawn } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 const  { app } = require('electron');
 
 
@@ -55,13 +56,22 @@ class PythonManager {
 
         const pythonPath = this.getPythonPath(); 
         const scriptPath = this.getScriptPath();
+        const ghidraInstall = process.env.GHIDRA_INSTALL_DIR;
+
+        if (!ghidraInstall) {
+            throw new Error("GHIDRA_INSTALL_DIR not set. Please point it to your Ghidra install.");
+        }
+
+        if (!fs.existsSync(ghidraInstall)) {
+            throw new Error(`GHIDRA_INSTALL_DIR is invalid: ${ghidraInstall}`);
+        }
 
         console.log(`Starting Python server: ${pythonPath}:${scriptPath}`);
 
         this.process = spawn(pythonPath, [scriptPath], {
             env: {
                 ...process.env,
-                GHIDRA_INSTALL_DIR: process.env.GHIDRA_INSTALL_DIR || '/opt/ghidra',
+                GHIDRA_INSTALL_DIR: ghidraInstall,
                 PYTHONUNBUFFERED: '1'  // Disable output buffering
             },
             stdio: ['pipe', 'pipe', 'pipe']

@@ -569,7 +569,9 @@ class AnalysisWebSocketServer:
     async def start(self):
         """Start the WebSocket server"""
         # Initialize Ghidra once at startup
-        ghidra_install = os.environ.get("GHIDRA_INSTALL_DIR", "/opt/ghidra")
+        ghidra_install = os.environ.get("GHIDRA_INSTALL_DIR")
+        if not ghidra_install:
+            raise RuntimeError("GHIDRA_INSTALL_DIR not set")
         print(f"Initializing Ghidra from {ghidra_install}...")
         self.ghidra_manager = GhidraManager(ghidra_install)
 

@@ -4,8 +4,16 @@ from pathlib import Path
 
 
 class GhidraManager:
-    def __init__(self, install_dir):
-        self.install_dir = install_dir
+    def __init__(self, install_dir=None):
+        resolved_install = install_dir or os.environ.get("GHIDRA_INSTALL_DIR")
+        if not resolved_install:
+            raise RuntimeError("GHIDRA_INSTALL_DIR not set")
+
+        install_path = Path(resolved_install).expanduser()
+        if not install_path.is_dir():
+            raise RuntimeError(f"GHIDRA_INSTALL_DIR is invalid: {install_path}")
+
+        self.install_dir = str(install_path)
         self.project = None
         self.current_program = None
         self.program_consumer = None
@@ -562,5 +570,3 @@ class GhidraManager:
             }
             for b in bookmarks
         ]
-
-
