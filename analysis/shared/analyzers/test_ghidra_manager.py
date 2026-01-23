@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-from ghidra_manager import GhidraManager
+from analysis.shared.analyzers.ghidra_manager import GhidraManager
 
 
 def assert_true(cond, msg):
