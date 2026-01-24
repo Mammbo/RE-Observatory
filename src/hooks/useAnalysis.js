@@ -106,6 +106,22 @@ export function useAnalysis() {
         }
     }, []);
 
+    const getCallGraph = useCallback(async () => { 
+        try { 
+            return await window.electron.send('get_call_graph', { address })
+        } catch (err) { 
+            setError(err.message)
+        }
+    }, []);
+
+    const getCFG = useCallback(async () => { 
+        try { 
+            return await window.electron.send("get_cfg", {address})
+        } catch (err) { 
+            setError(err.message)
+        }
+    })
+
     // Clear error
     const clearError = useCallback(() => {
         setError(null);
@@ -120,9 +136,11 @@ export function useAnalysis() {
 
         // Actions
         analyzeBinary,
-        getFunctions,
         getProgramInfo,
+        getFunctions,
         decompileFunction,
+        getCFG,
+        getCallGraph,
         clearError
     };
 }
