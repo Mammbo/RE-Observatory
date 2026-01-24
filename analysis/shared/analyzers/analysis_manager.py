@@ -4,8 +4,6 @@ from pathlib import Path
 import floss.strings
 import floss.main
 import floss.identify
-import vivisect
-
 class AnalysisManager: 
     def __init__(self, filepath):
             self.filepath = Path(filepath)
@@ -157,7 +155,3 @@ class AnalysisManager:
                         "strings": strings,
                     }
             }
-
-analyze = AnalysisManager("/usr/bin/find/")
-data = analyze.get_program_info()
-print(data)

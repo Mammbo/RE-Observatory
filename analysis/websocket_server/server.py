@@ -8,6 +8,7 @@ import websockets
 # Add project root to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from analysis.shared.analyzers.ghidra_manager import GhidraManager
+from analysis.shared.analyzers.analysis_manager import AnalysisManager
 
 
 class AnalysisWebSocketServer:
@@ -17,6 +18,8 @@ class AnalysisWebSocketServer:
         self.host = host
         self.port = port
         self.ghidra_manager = None
+        self.analysis_manager = None
+        self.binary_path = None
         self.client = None
 
     # -----------------------------
@@ -45,6 +48,10 @@ class AnalysisWebSocketServer:
             if not binary_path:
                 return await self.error(websocket, "binary_path is required")
 
+            # Initialize AnalysisManager for this binary
+            self.binary_path = binary_path
+            self.analysis_manager = AnalysisManager(binary_path)
+
             loop = asyncio.get_event_loop()
             program = await loop.run_in_executor(
                 None,
@@ -65,10 +72,10 @@ class AnalysisWebSocketServer:
     async def handle_get_program_info(self, websocket):
         """Get metadata about the loaded program"""
         try:
-            if self.ghidra_manager.current_program is None:
+            if self.analysis_manager is None:
                 return await self.error(websocket, "No program loaded")
 
-            info = self.ghidra_manager.get_program_info()
+            info = self.analysis_manager.get_program_info()
             await self.send(websocket, "program_info", info)
 
         except Exception as e:
@@ -181,273 +188,6 @@ class AnalysisWebSocketServer:
             await self.error(websocket, f"Call graph generation failed: {e}")
 
     # -----------------------------
-    # Data Extraction Handlers
-    # -----------------------------
-
-    async def handle_get_strings(self, websocket, min_length=4):
-        """Get all strings in the binary"""
-        try:
-            if self.ghidra_manager.current_program is None:
-                return await self.error(websocket, "No program loaded")
-
-            loop = asyncio.get_event_loop()
-            strings = await loop.run_in_executor(
-                None,
-                self.ghidra_manager.get_strings,
-                min_length
-            )
-
-            await self.send(websocket, "strings", {"strings": strings})
-
-        except Exception as e:
-            await self.error(websocket, f"Failed to get strings: {e}")
-
-    async def handle_get_imports(self, websocket):
-        """Get all imports in the binary"""
-        try:
-            if self.ghidra_manager.current_program is None:
-                return await self.error(websocket, "No program loaded")
-
-            loop = asyncio.get_event_loop()
-            imports = await loop.run_in_executor(
-                None,
-                self.ghidra_manager.get_imports
-            )
-
-            await self.send(websocket, "imports", {"imports": imports})
-
-        except Exception as e:
-            await self.error(websocket, f"Failed to get imports: {e}")
-
-    # -----------------------------
-    # Annotation Handlers
-    # -----------------------------
-
-    async def handle_rename_function(self, websocket, address, new_name):
-        """Rename a function"""
-        try:
-            if not address or not new_name:
-                return await self.error(websocket, "address and new_name are required")
-
-            if self.ghidra_manager.current_program is None:
-                return await self.error(websocket, "No program loaded")
-
-            func = self.ghidra_manager.get_function_by_address(address)
-            old_name = func.getName() if func else None
-
-            loop = asyncio.get_event_loop()
-            success = await loop.run_in_executor(
-                None,
-                self.ghidra_manager.rename_function,
-                address,
-                new_name
-            )
-
-            if not success:
-                return await self.error(websocket, f"Failed to rename function at {address}")
-
-            await self.send(websocket, "function_renamed", {
-                "address": address,
-                "old_name": old_name,
-                "new_name": new_name
-            })
-
-        except Exception as e:
-            await self.error(websocket, f"Rename failed: {e}")
-
-    async def handle_add_comment(self, websocket, address, comment):
-        """Add an end-of-line comment at an address"""
-        try:
-            if not address or not comment:
-                return await self.error(websocket, "address and comment are required")
-
-            if self.ghidra_manager.current_program is None:
-                return await self.error(websocket, "No program loaded")
-
-            loop = asyncio.get_event_loop()
-            success = await loop.run_in_executor(
-                None,
-                self.ghidra_manager.add_comment,
-                address,
-                comment
-            )
-
-            if not success:
-                return await self.error(websocket, f"Failed to add comment at {address}")
-
-            await self.send(websocket, "comment_added", {
-                "address": address,
-                "comment": comment
-            })
-
-        except Exception as e:
-            await self.error(websocket, f"Add comment failed: {e}")
-
-    async def handle_add_function_comment(self, websocket, function_address, comment):
-        """Add a comment to a function"""
-        try:
-            if not function_address or not comment:
-                return await self.error(websocket, "function_address and comment are required")
-
-            if self.ghidra_manager.current_program is None:
-                return await self.error(websocket, "No program loaded")
-
-            loop = asyncio.get_event_loop()
-            success = await loop.run_in_executor(
-                None,
-                self.ghidra_manager.add_function_comment,
-                function_address,
-                comment
-            )
-
-            if not success:
-                return await self.error(websocket, f"Failed to add function comment")
-
-            await self.send(websocket, "function_comment_added", {
-                "address": function_address,
-                "comment": comment
-            })
-
-        except Exception as e:
-            await self.error(websocket, f"Add function comment failed: {e}")
-
-    async def handle_add_bookmark(self, websocket, address, category, comment, bookmark_type="Note"):
-        """Add a bookmark at an address"""
-        try:
-            if not address or not category or not comment:
-                return await self.error(websocket, "address, category, and comment are required")
-
-            if self.ghidra_manager.current_program is None:
-                return await self.error(websocket, "No program loaded")
-
-            loop = asyncio.get_event_loop()
-            success = await loop.run_in_executor(
-                None,
-                self.ghidra_manager.add_bookmark,
-                address,
-                category,
-                comment,
-                bookmark_type
-            )
-
-            if not success:
-                return await self.error(websocket, f"Failed to add bookmark at {address}")
-
-            await self.send(websocket, "bookmark_added", {
-                "address": address,
-                "category": category,
-                "comment": comment,
-                "type": bookmark_type
-            })
-
-        except Exception as e:
-            await self.error(websocket, f"Add bookmark failed: {e}")
-
-    async def handle_add_function_tag(self, websocket, function_address, tag):
-        """Add a tag to a function"""
-        try:
-            if not function_address or not tag:
-                return await self.error(websocket, "function_address and tag are required")
-
-            if self.ghidra_manager.current_program is None:
-                return await self.error(websocket, "No program loaded")
-
-            loop = asyncio.get_event_loop()
-            success = await loop.run_in_executor(
-                None,
-                self.ghidra_manager.add_function_tag,
-                function_address,
-                tag
-            )
-
-            if not success:
-                return await self.error(websocket, f"Failed to add tag to function")
-
-            await self.send(websocket, "function_tag_added", {
-                "address": function_address,
-                "tag": tag
-            })
-
-        except Exception as e:
-            await self.error(websocket, f"Add function tag failed: {e}")
-
-    async def handle_get_function_annotations(self, websocket, function_address):
-        """Get all annotations for a function"""
-        try:
-            if not function_address:
-                return await self.error(websocket, "function_address is required")
-
-            if self.ghidra_manager.current_program is None:
-                return await self.error(websocket, "No program loaded")
-
-            loop = asyncio.get_event_loop()
-            annotations = await loop.run_in_executor(
-                None,
-                self.ghidra_manager.get_function_annotations,
-                function_address
-            )
-
-            if annotations is None:
-                return await self.error(websocket, f"Function not found at {function_address}")
-
-            # Convert tags to strings for JSON serialization
-            if annotations.get("tags"):
-                annotations["tags"] = [str(t) for t in annotations["tags"]]
-
-            await self.send(websocket, "function_annotations", annotations)
-
-        except Exception as e:
-            await self.error(websocket, f"Get function annotations failed: {e}")
-
-    async def handle_get_comments_at(self, websocket, address):
-        """Get all comments at an address"""
-        try:
-            if not address:
-                return await self.error(websocket, "address is required")
-
-            if self.ghidra_manager.current_program is None:
-                return await self.error(websocket, "No program loaded")
-
-            loop = asyncio.get_event_loop()
-            comments = await loop.run_in_executor(
-                None,
-                self.ghidra_manager.get_comments_at,
-                address
-            )
-
-            await self.send(websocket, "comments", {
-                "address": address,
-                "comments": comments
-            })
-
-        except Exception as e:
-            await self.error(websocket, f"Get comments failed: {e}")
-
-    async def handle_get_bookmarks_at(self, websocket, address):
-        """Get all bookmarks at an address"""
-        try:
-            if not address:
-                return await self.error(websocket, "address is required")
-
-            if self.ghidra_manager.current_program is None:
-                return await self.error(websocket, "No program loaded")
-
-            loop = asyncio.get_event_loop()
-            bookmarks = await loop.run_in_executor(
-                None,
-                self.ghidra_manager.get_bookmarks_at,
-                address
-            )
-
-            await self.send(websocket, "bookmarks", {
-                "address": address,
-                "bookmarks": bookmarks
-            })
-
-        except Exception as e:
-            await self.error(websocket, f"Get bookmarks failed: {e}")
-
-    # -----------------------------
     # Connection Handler
     # -----------------------------
 
@@ -484,66 +224,6 @@ class AnalysisWebSocketServer:
 
                 elif command == "get_call_graph":
                     await self.handle_get_call_graph(websocket)
-
-                # Data extraction
-                elif command == "get_strings":
-                    await self.handle_get_strings(websocket, data.get("min_length", 4))
-
-                elif command == "get_imports":
-                    await self.handle_get_imports(websocket)
-
-                # Annotations - Rename
-                elif command == "rename_function":
-                    await self.handle_rename_function(
-                        websocket,
-                        data.get("address"),
-                        data.get("new_name")
-                    )
-
-                # Annotations - Comments
-                elif command == "add_comment":
-                    await self.handle_add_comment(
-                        websocket,
-                        data.get("address"),
-                        data.get("comment")
-                    )
-
-                elif command == "add_function_comment":
-                    await self.handle_add_function_comment(
-                        websocket,
-                        data.get("address"),
-                        data.get("comment")
-                    )
-
-                elif command == "get_comments":
-                    await self.handle_get_comments_at(websocket, data.get("address"))
-
-                # Annotations - Bookmarks
-                elif command == "add_bookmark":
-                    await self.handle_add_bookmark(
-                        websocket,
-                        data.get("address"),
-                        data.get("category"),
-                        data.get("comment"),
-                        data.get("type", "Note")
-                    )
-
-                elif command == "get_bookmarks":
-                    await self.handle_get_bookmarks_at(websocket, data.get("address"))
-
-                # Annotations - Tags
-                elif command == "add_function_tag":
-                    await self.handle_add_function_tag(
-                        websocket,
-                        data.get("address"),
-                        data.get("tag")
-                    )
-
-                elif command == "get_function_annotations":
-                    await self.handle_get_function_annotations(
-                        websocket,
-                        data.get("address")
-                    )
 
                 # Unknown command
                 else:
