@@ -114,7 +114,7 @@ export function useAnalysis() {
         }
     }, []);
 
-    const getCFG = useCallback(async () => { 
+    const getCFG = useCallback(async (address) => { 
         try { 
             return await window.electron.send("get_cfg", {address})
         } catch (err) { 

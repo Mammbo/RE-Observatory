@@ -8,14 +8,13 @@ import NodePanel from './components/Canvas/nodePanels';
 import UploadBinaryPage from './components/Layout/UploadBinaryPage';
 function App() {
   const {
-    isConnected,
-    isLoading,
-    error,
     analysisData,
     analyzeBinary,
     getFunctions,
     getProgramInfo,
-    decompileFunction
+    decompileFunction,
+    getCallGraph,
+    getCFG
   } = useAnalysis();
 
   const [binaryPath, setBinaryPath] = useState(null);
@@ -24,19 +23,7 @@ function App() {
   const {activePanel, panelWidth} = useSideBarStore();
   const { activePanel: nodePanel, panelWidth: nodePanelWidth } = useCFGNodeStore();
 
-  // Log state changes to console for testing
-  useEffect(() => {
-    console.log('Connection status:', isConnected);
-  }, [isConnected]);
-
-  useEffect(() => {
-    console.log('Loading status:', isLoading);
-  }, [isLoading]);
-
-  useEffect(() => {
-    console.log('Error:', error);
-  }, [error]);
-
+// analyze binary
   useEffect(() => {
     console.log('Analysis data:', analysisData);
   }, [analysisData]);
@@ -77,8 +64,26 @@ function App() {
     console.log('Decompiling function at:', selectedFunction);
     await decompileFunction(selectedFunction);
   };
+
+  const handleGetCallGraph = async () => {
+    console.log("Getting Call Graph");
+    await getCallGraph();
+  };
+
+  const handleGetCFG = async () => {
+    if (!selectedFunction) {
+      console.log('No function address entered');
+      return;
+    }
+    console.log('Getting Call Function Graph at:', selectedFunction);
+    await getCFG(selectedFunction);
+  };
+
+
+  // REGISTER NODE PANEL
   const { registerPanel } = useCFGNodeStore();
 
+  // register panel will be for the length of the call graph.
   useEffect(() => {
       // Register test data - address must match data.src in GraphDisplay.jsx
       registerPanel("0x4010000", {
