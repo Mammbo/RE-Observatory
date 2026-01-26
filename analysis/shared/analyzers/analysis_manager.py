@@ -31,40 +31,43 @@ class AnalysisManager:
         _stack_strings = None
         _tight_strings = None
         _decode_strings = None
-        try: 
-            with open(self.filepath, 'rb') as f: 
+
+        try:
+            with open(self.filepath, 'rb') as f:
                 file_data = f.read()
 
             _ascii_strings = [s.string for s in floss.strings.extract_ascii_strings(file_data, 4)]
             _utf16_strings = [s.string for s in floss.strings.extract_unicode_strings(file_data, 4)]
-        except Exception as e: 
+        except Exception as e:
             print(f"Error extracting static strings {e}")
 
-        try:
-            vw = floss.main.load_vw(self.filepath, format=None, sigpaths=None)
-            selected_functions = floss.main.select_functions(vw, None)
-            tight_functions = floss.main.get_functions_with_tightloops(vw, None)
+        # FLOSS advanced modes only supported for PE; skip on other formats to avoid hangs
+        if self.binary.format.name == "PE":
+            try:
+                vw = floss.main.load_vw(self.filepath, format=None, sigpaths=None)
+                selected_functions = floss.main.select_functions(vw, None)
+                tight_functions = floss.main.get_functions_with_tightloops(vw, None)
 
-            decoding_features = floss.identify.find_decoding_function_features()
-            _decode_strings = [s.string for s in floss.main.decode_strings(file_data, decoding_features, 4)]
+                decoding_features = floss.identify.find_decoding_function_features()
+                _decode_strings = [s.string for s in floss.main.decode_strings(file_data, decoding_features, 4)]
 
-            _stack_strings = [s.string for s in floss.main.extract_stackstrings(vw, selected_functions, 4)]
-            _tight_strings = [s.string for s in floss.main.extract_tightstrings(vw, tight_functions, 4)]
-        except Exception as e: 
-            print(f"Error extracting strings {e}")
-           
+                _stack_strings = [s.string for s in floss.main.extract_stackstrings(vw, selected_functions, 4)]
+                _tight_strings = [s.string for s in floss.main.extract_tightstrings(vw, tight_functions, 4)]
+            except Exception as e:
+                print(f"Error extracting strings {e}")
 
         return {
             "static": {
-            "ascii": _ascii_strings if _ascii_strings else None,
-            "utf16": _utf16_strings if _utf16_strings else None,
+                "ascii": _ascii_strings if _ascii_strings else None,
+                "utf16": _utf16_strings if _utf16_strings else None,
             },
-            "advanced": { 
+            "advanced": {
                 "stack": _stack_strings if _stack_strings else None,
                 "tight": _tight_strings if _tight_strings else None,
             },
             "obfuscated": {
-                "decode": _decode_strings if _decode_strings else None}
+                "decode": _decode_strings if _decode_strings else None
+            }
         }
         
     # we are replacing get imports with Lief!

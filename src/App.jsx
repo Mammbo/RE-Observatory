@@ -10,15 +10,13 @@ function App() {
   const {
     analysisData,
     analyzeBinary,
-    getFunctions,
-    getProgramInfo,
-    decompileFunction,
-    getCallGraph,
-    getCFG
+    messages,
+    isConnected,
+    isLoading,
+    error
   } = useAnalysis();
 
   const [binaryPath, setBinaryPath] = useState(null);
-  const [selectedFunction, setSelectedFunction] = useState('');
 
   const {activePanel, panelWidth} = useSideBarStore();
   const { activePanel: nodePanel, panelWidth: nodePanelWidth } = useCFGNodeStore();
@@ -46,38 +44,12 @@ function App() {
     await analyzeBinary(binaryPath);
   };
 
-  const handleGetProgramInfo = async () => {
-    console.log('Getting program info...');
-    await getProgramInfo();
-  };
-
-  const handleGetFunctions = async () => {
-    console.log('Getting functions...');
-    await getFunctions();
-  };
-
-  const handleDecompileFunction = async () => {
-    if (!selectedFunction) {
-      console.log('No function address entered');
-      return;
+  // auto-run analysis after a file is chosen
+  useEffect(() => {
+    if (binaryPath) {
+      handleAnalyzeBinary();
     }
-    console.log('Decompiling function at:', selectedFunction);
-    await decompileFunction(selectedFunction);
-  };
-
-  const handleGetCallGraph = async () => {
-    console.log("Getting Call Graph");
-    await getCallGraph();
-  };
-
-  const handleGetCFG = async () => {
-    if (!selectedFunction) {
-      console.log('No function address entered');
-      return;
-    }
-    console.log('Getting Call Function Graph at:', selectedFunction);
-    await getCFG(selectedFunction);
-  };
+  }, [binaryPath]);
 
 
   // REGISTER NODE PANEL
@@ -113,6 +85,7 @@ function App() {
                 marginRight: `${nodePanel ? nodePanelWidth : 0}px`
               }}
             >
+             
               <CanvasView />
             </main>
             <NodePanel />
@@ -124,3 +97,18 @@ function App() {
 };
 
 export default App;
+/*
+ <div className="p-4 text-sm text-gray-200 space-y-2">
+                <div>Status: {isConnected ? 'connected' : 'disconnected'} {isLoading && '(analyzing...)'}</div>
+                <div>Binary: {binaryPath}</div>
+                {error && <div className="text-red-400">Error: {error}</div>}
+                <div className="bg-gray-900/60 rounded p-2 h-40 overflow-auto">
+                  <div className="font-semibold mb-1">Backend messages (latest first)</div>
+                  {[...messages].reverse().slice(0,20).map((m, i) => (
+                    <div key={i} className="text-xs text-gray-300 whitespace-pre-wrap">
+                      {m.type}: {JSON.stringify(m.payload).slice(0, 160)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+*/

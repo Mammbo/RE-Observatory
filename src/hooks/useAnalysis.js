@@ -5,6 +5,7 @@ export function useAnalysis() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState(null);
     const [analysisData, setAnalysisData] = useState(null);
+    const [messages, setMessages] = useState([]);
 
     // Listen for connection status
     useEffect(() => {
@@ -23,16 +24,37 @@ export function useAnalysis() {
     // Listen for messages from Python backend
     useEffect(() => {
         const handleMessage = (message) => {
+            setMessages(prev => [...prev.slice(-199), message]); // keep last 200
             switch (message.type) {
                 case 'analysis_complete':
-                    setAnalysisData(message.payload);
-                    setIsLoading(false);
-                    break;
-                case 'functions':
                     setAnalysisData(prev => ({
                         ...prev,
-                        functions: message.payload.functions
+                        name: message.payload?.name,
+                        programInfo: message.payload?.info ?? prev?.programInfo
                     }));
+                    setIsLoading(false);
+                    // Auto-request details once analysis finishes
+                    window.electron.sendAsync('get_functions', {});
+                    window.electron.sendAsync('get_call_graph', {});
+                    if (!message.payload?.info) {
+                        window.electron.sendAsync('get_program_info', {});
+                    }
+                    break;
+                case 'functions':
+                    setAnalysisData(prev => {
+                        const next = {
+                        ...prev,
+                        functions: message.payload.functions
+                        };
+                        // If we have at least one function, auto-request decompile + CFG for the first 
+                        // do this for each function and store it
+                        const first = message.payload.functions?.[0];
+                        if (first?.address) {
+                            window.electron.sendAsync('decompile_function', { address: first.address });
+                            window.electron.sendAsync('get_cfg', { address: first.address });
+                        }
+                        return next;
+                    });
                     break;
                 case 'decompiled':
                     setAnalysisData(prev => ({
@@ -44,6 +66,28 @@ export function useAnalysis() {
                     setAnalysisData(prev => ({
                         ...prev,
                         programInfo: message.payload
+                    }));
+                    break;
+                case 'call_graph':
+                    setAnalysisData(prev => ({
+                        ...prev,
+                        callGraph: message.payload
+                    }));
+                    break;
+                case 'cfg':
+                    setAnalysisData(prev => ({
+                        ...prev,
+                        cfg: message.payload
+                    }));
+                    break;
+                case 'analysis_started':
+                case 'analysis_parsed':
+                case 'analysis_loading':
+                case 'analysis_loaded':
+                    setAnalysisData(prev => ({
+                        ...prev,
+                        status: message.type,
+                        statusPayload: message.payload
                     }));
                     break;
                 case 'error':
@@ -108,7 +152,7 @@ export function useAnalysis() {
 
     const getCallGraph = useCallback(async () => { 
         try { 
-            return await window.electron.send('get_call_graph', { address })
+            return await window.electron.send('get_call_graph', {})
         } catch (err) { 
             setError(err.message)
         }
@@ -120,7 +164,7 @@ export function useAnalysis() {
         } catch (err) { 
             setError(err.message)
         }
-    })
+    }, []);
 
     // Clear error
     const clearError = useCallback(() => {
@@ -133,6 +177,7 @@ export function useAnalysis() {
         isLoading,
         error,
         analysisData,
+        messages,
 
         // Actions
         analyzeBinary,

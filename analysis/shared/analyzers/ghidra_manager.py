@@ -76,7 +76,16 @@ class GhidraManager:
 
         self._program_cm = program_cm
         self.current_program = program.getCurrentProgram()
-    
+        # Kick off auto-analysis so functions/symbols are available.
+        try:
+            AutoAnalysisManager = jpype.JClass("ghidra.app.services.AutoAnalysisManager")
+            TaskMonitor = jpype.JClass("ghidra.util.task.TaskMonitor")
+            aam = AutoAnalysisManager.getAnalysisManager(self.current_program)
+            aam.initializeOptions()
+            aam.startAnalysis(TaskMonitor.DUMMY)
+        except Exception as e:
+            print(f"Warning: auto-analysis failed: {e}")
+
         return self.current_program
     #finish this 
     def close_program(self):

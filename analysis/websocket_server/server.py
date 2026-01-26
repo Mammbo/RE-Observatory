@@ -4,6 +4,8 @@ import sys
 import os
 from pathlib import Path
 import websockets
+import time
+import jpype
 
 # Add project root to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -19,6 +21,7 @@ class AnalysisWebSocketServer:
         self.port = port
         self.ghidra_manager = None
         self.analysis_manager = None
+        self.analysis_task = None
         self.binary_path = None
         self.client = None
 
@@ -42,36 +45,62 @@ class AnalysisWebSocketServer:
     # Binary Analysis Handlers
     # -----------------------------
 
-    async def handle_analyze_binary(self, websocket, binary_path):
-        """Load and analyze a binary file"""
+    async def _run_analysis(self, websocket, binary_path):
+        """Internal helper to run analysis asynchronously."""
         try:
-            if not binary_path:
-                return await self.error(websocket, "binary_path is required")
+            await self.send(websocket, "analysis_started", {"path": binary_path})
 
             # Initialize AnalysisManager for this binary
             self.binary_path = binary_path
-            self.analysis_manager = AnalysisManager(binary_path)
+            try:
+                self.analysis_manager = AnalysisManager(binary_path)
+                await self.send(websocket, "analysis_parsed", {"path": binary_path})
+            except Exception as parse_err:
+                return await self.error(websocket, f"Pre-analysis parsing failed: {parse_err}")
 
-            loop = asyncio.get_event_loop()
-            program = await loop.run_in_executor(
-                None,
-                self.ghidra_manager.analyze_binary,
-                binary_path
-            )
+            await self.send(websocket, "analysis_loading", {"path": binary_path})
+            # Run Ghidra analysis in the event-loop thread to avoid JPype thread attach hangs.
+            program = self.ghidra_manager.analyze_binary(binary_path)
 
-            program_info = self.ghidra_manager.get_program_info()
+            # Use the fast metadata gathered by AnalysisManager (lief + FLOSS).
+            program_info = self.analysis_manager.get_program_info()
+            await self.send(websocket, "analysis_loaded", {"path": binary_path})
 
             await self.send(websocket, "analysis_complete", {
                 "name": program.getName(),
                 "info": program_info
             })
-
         except Exception as e:
             await self.error(websocket, f"Analysis failed: {e}")
+        finally:
+            # Always allow subsequent analyses and clean up any opened program.
+            self.analysis_task = None
+
+    def _analyze_binary_threadsafe(self, binary_path):
+        """Ensure executor thread is attached to JVM before calling into Ghidra."""
+        if jpype.isJVMStarted():
+            Thread = jpype.JClass("java.lang.Thread")
+            cur = Thread.currentThread()
+            # JPype recommends using java.lang.Thread.attach()
+            if hasattr(cur, "isAttached") and not cur.isAttached():
+                cur.attach()
+        return self.ghidra_manager.analyze_binary(binary_path)
+
+    async def handle_analyze_binary(self, websocket, binary_path):
+        """Load and analyze a binary file (non-blocking)."""
+        if self.analysis_task is not None:
+            return await self.error(websocket, "Analysis already in progress")
+
+        if not binary_path:
+            return await self.error(websocket, "binary_path is required")
+
+        self.analysis_task = asyncio.create_task(self._run_analysis(websocket, binary_path))
 
     async def handle_get_program_info(self, websocket):
         """Get metadata about the loaded program"""
         try:
+            if self.analysis_task is not None:
+                return await self.error(websocket, "Analysis in progress")
             if self.analysis_manager is None:
                 return await self.error(websocket, "No program loaded")
 
@@ -88,6 +117,8 @@ class AnalysisWebSocketServer:
     async def handle_get_functions(self, websocket):
         """Get all functions in the binary"""
         try:
+            if self.analysis_task is not None:
+                return await self.error(websocket, "Analysis in progress")
             if self.ghidra_manager.current_program is None:
                 return await self.error(websocket, "No program loaded")
 
@@ -237,6 +268,12 @@ class AnalysisWebSocketServer:
             print(f"Handler error: {e}")
         finally:
             self.client = None
+            if self.analysis_task and not self.analysis_task.done():
+                self.analysis_task.cancel()
+                try:
+                    await self.analysis_task
+                except asyncio.CancelledError:
+                    pass
             if self.ghidra_manager and self.ghidra_manager.current_program:
                 self.ghidra_manager.close_decompiler()
                 self.ghidra_manager.close_program()
@@ -260,7 +297,6 @@ class AnalysisWebSocketServer:
             print(f"WebSocket server started at ws://{self.host}:{self.port}")
             print("Waiting for connections...")
             await asyncio.Future()  # Run forever
-
 
 def main():
     server = AnalysisWebSocketServer(host='localhost', port=9999)
