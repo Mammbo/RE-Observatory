@@ -67,31 +67,48 @@ function App() {
         ccode: "lebron"
       })
   }, []);
-
-
+  
   return (
     <div className="flex h-screen bg-primary">
       <SideBar />
       {/* Main content area - offset by sidebar width */}
       <> 
-        {!binaryPath ? (
-         <UploadBinaryPage onSelectBinary={handleSelectBinary} />
-        ): (
-          <>
-             <main
-              className="flex-1 h-screen transition-[margin] duration-300 ease-in-out"
-              style={{
-                marginLeft: `${64 + (activePanel ? panelWidth : 0)}px`,
-                marginRight: `${nodePanel ? nodePanelWidth : 0}px`
-              }}
-            >
-             
-              <CanvasView />
-            </main>
-            <NodePanel />
+        <div className="relative flex-1 h-screen overflow-hidden">
+              {/* Upload Page */}
+              <div
+                className={`
+                  absolute inset-0 z-10 transition-all duration-500 ease-out
+                  ${!binaryPath
+                    ? 'opacity-100 translate-y-0 scale-100 blur-0 pointer-events-auto'
+                    : 'opacity-0 -translate-y-4 scale-95 blur-sm pointer-events-none'}
+                `}
+              >
+                <UploadBinaryPage onSelectBinary={handleSelectBinary} />
+              </div>
+
+              {/* Main App */}
+              <div
+                className={`
+                  absolute inset-0 transition-all duration-500 ease-out
+                  ${binaryPath
+                    ? 'opacity-100 translate-y-0 scale-100 blur-0 z-10 pointer-events-auto'
+                    : 'opacity-0 translate-y-4 sclae-95 blur-sm z-0 pointer-events-none'}
+                `}
+              >
+                <main
+                  className="flex h-screen transition-[margin] duration-300 ease-in-out"
+                  style={{
+                    marginLeft: `${64 + (activePanel ? panelWidth : 0)}px`,
+                    marginRight: `${nodePanel ? nodePanelWidth : 0}px`,
+                  }}
+                >
+                  <CanvasView />
+                </main>
+
+                <NodePanel />
+              </div>
+            </div>
           </>
-        )}
-      </>
     </div>
   );
 };

@@ -1,4 +1,8 @@
+const {heroui} = require('@heroui/theme');
 import path from 'path';
+  content: [
+    "./node_modules/@heroui/theme/dist/components/(accordion|divider).js"
+],
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import { fileURLToPath } from 'url';
 
@@ -30,12 +34,8 @@ export default {
   resolve: {
     extensions: ['.js', '.jsx'],
   },
-
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: './public/index.html',
-    }),
-  ],
+  plugins: [new HtmlWebpackPlugin({
+      template: './public/index.html',}),heroui()],
 
   devServer: {
     static: {

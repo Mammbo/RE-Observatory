@@ -28,7 +28,7 @@ const SideBar = () => {
         <SideBarButton icon={<TbAnalyze size="32"/>} text={"Analysis Status"} onClick={() => togglePanel('status')}/>
         <SideBarButton icon={<IoIosDownload size="32"/>} text={"Download Binary inforamation"} onClick={handleClick}/>
         
-        <ExpandedPanel activePanel={activePanel} width={panelWidth}>
+        <ExpandedPanel className="flex flex-col justify-items-start" activePanel={activePanel} width={panelWidth}>
             {activePanel === 'binary' && <BinaryOverview />}
             {activePanel === 'signals' && <SignalsOverview />}
             {activePanel === 'status' && <StatusOverviw />}
