@@ -1,0 +1,24 @@
+import { create } from 'zustand';
+
+const useAnalysisStore = create((set) => ({
+    analysisData: null,
+    isLoading: false,
+    error: null,
+
+    setAnalysisData: (data) => set({ analysisData: data }),
+    setIsLoading: (loading) => set({ isLoading: loading }),
+    setError: (error) => set({ error: error }),
+
+    // Computed getters for convenience
+    getProgramInfo: () => {
+        const state = useAnalysisStore.getState();
+        return state.analysisData?.programInfo?.meta || null;
+    },
+
+    getSecurityFeatures: () => {
+        const state = useAnalysisStore.getState();
+        return state.analysisData?.programInfo?.meta?.security || null;
+    },
+}));
+
+export default useAnalysisStore;

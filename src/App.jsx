@@ -3,6 +3,7 @@ import { useAnalysis } from './hooks/useAnalysis';
 import SideBar from './components/Sidebar/SideBar'
 import useSideBarStore from './store/sideBarStore';
 import useCFGNodeStore from './store/cfgNodeStore';
+import useAnalysisStore from './store/analysisStore';
 import CanvasView from './components/Canvas/GraphDisplay';
 import NodePanel from './components/Canvas/nodePanels';
 import UploadBinaryPage from './components/Layout/UploadBinaryPage';
@@ -20,11 +21,17 @@ function App() {
 
   const {activePanel, panelWidth} = useSideBarStore();
   const { activePanel: nodePanel, panelWidth: nodePanelWidth } = useCFGNodeStore();
+  const { setAnalysisData: setStoreAnalysisData, setIsLoading: setStoreLoading } = useAnalysisStore();
 
-// analyze binary
+  // Sync analysis data to store for use by other components
   useEffect(() => {
     console.log('Analysis data:', analysisData);
-  }, [analysisData]);
+    setStoreAnalysisData(analysisData);
+  }, [analysisData, setStoreAnalysisData]);
+
+  useEffect(() => {
+    setStoreLoading(isLoading);
+  }, [isLoading, setStoreLoading]);
 
   const handleSelectBinary = async () => {
     console.log('Opening file dialog...');
