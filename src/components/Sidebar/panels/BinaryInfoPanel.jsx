@@ -51,7 +51,7 @@ const SectionHeader = ({ children }) => (
 const InfoRow = ({ label, value, mono = true }) => (
     <li className="flex justify-between items-center">
         <span className="text-gray-300">{label}</span>
-        <span className={`${mono ? 'font-mono' : ''} text-gray-400 truncate ml-2 max-w-[140px]`} title={value}>
+        <span className={`${mono ? 'font-mono' : ''} text-gray-400 truncate ml-2 max-w-35`} title={value}>
             {value ?? "—"}
         </span>
     </li>
@@ -199,7 +199,7 @@ const BinaryOverview = () => {
                         {security.elf.rpath && (
                             <li className="flex justify-between">
                                 <span>RPATH</span>
-                                <span className="text-yellow-400 truncate max-w-[120px]" title={security.elf.rpath}>
+                                <span className="text-yellow-400 truncate max-w-30" title={security.elf.rpath}>
                                     {security.elf.rpath}
                                 </span>
                             </li>
@@ -207,7 +207,7 @@ const BinaryOverview = () => {
                         {security.elf.runpath && (
                             <li className="flex justify-between">
                                 <span>RUNPATH</span>
-                                <span className="text-yellow-400 truncate max-w-[120px]" title={security.elf.runpath}>
+                                <span className="text-yellow-400 truncate max-w-30" title={security.elf.runpath}>
                                     {security.elf.runpath}
                                 </span>
                             </li>

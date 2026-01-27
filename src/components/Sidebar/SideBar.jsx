@@ -1,20 +1,18 @@
 import { LuBinary } from "react-icons/lu";
 import { RiSignalTowerFill } from "react-icons/ri";
-import { TbBinaryTree } from "react-icons/tb";
-import { TbAnalyze } from "react-icons/tb";
-import { IoIosDownload } from "react-icons/io";
+import { MdFileDownload } from "react-icons/md";
+import { MdUpload } from "react-icons/md";
 import useSideBarStore from "../../store/sideBarStore";
 import ExpandedPanel from "./ExpandedPanel";
 import BinaryOverview from "./panels/BinaryInfoPanel";
-import SignalsOverview from "./panels/SignalsPanel"
-import StatusOverviw from "./panels/AnalysisControlPanel"
+import TriageOverview from "./panels/TriagePanel"
 
 const SideBar = () => { 
     // zustand store
     const {activePanel, isResizing, panelWidth, minPanelWidth, maxPanelWidth, setPanelWidth, setIsResizing, togglePanel } = useSideBarStore();
         
 
-    //handle click to download info into json file  IMPLEMENT THIS LATER
+    //handle click to download info into json file  IMPLEMENT THIS LATER basically a react hook to query to database
     const handleClick = () => { 
     
     };
@@ -23,15 +21,12 @@ const SideBar = () => {
     <div className="fixed top-0 left-0 h-screen w-16 m-0 flex flex-col items-center py-6 gap-y-3 bg-secondary text-text-primary text-shadow-lg border-r-2 border-r-border-default z-50">
         <SideBarButton icon={<LuBinary size="32"/>} text={"Binary Overview"} onClick={() => togglePanel('binary')} isActive={activePanel === "binary"}/>
         <SideBarButton icon={<RiSignalTowerFill size="32"/>} text={"Triage Signals"} onClick={() => togglePanel('signals')} isActive={activePanel === "signals"}/>
-        <SideBarButton icon={<TbBinaryTree size="32"/>} text={"Graph Toggles"}/>
-
-        <SideBarButton icon={<TbAnalyze size="32"/>} text={"Analysis Status"} onClick={() => togglePanel('status')}/>
-        <SideBarButton icon={<IoIosDownload size="32"/>} text={"Download Binary inforamation"} onClick={handleClick}/>
+        <SideBarButton icon={<MdFileDownload size="32"/>} text={"Download Binary inforamation"} onClick={handleClick}/>
+        <SideBarButton icon={<MdUpload size="32"/>} text={"Open/Select a Binary"} onClick={handleClick}/>
         
         <ExpandedPanel className="flex flex-col justify-items-start" activePanel={activePanel} width={panelWidth}>
             {activePanel === 'binary' && <BinaryOverview />}
-            {activePanel === 'signals' && <SignalsOverview />}
-            {activePanel === 'status' && <StatusOverviw />}
+            {activePanel === 'signals' && <TriageOverview />}
         </ExpandedPanel>
 
     </div>);
