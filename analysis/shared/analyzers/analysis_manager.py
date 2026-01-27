@@ -96,10 +96,19 @@ class AnalysisManager:
         libs = []
         for lib in self.binary.libraries:
              
+             # LIEF returns different types per format (sometimes plain strings).
+             if isinstance(lib, str):
+                  libs.append({
+                       "name": lib,
+                       "current_version": None,
+                       "compatibility_version": None,
+                  })
+                  continue
+
              libs.append({
-                  "name": lib.name,
-                  "current_version": lib.current_version,
-                  "compatibility_version": lib.compatibility_version,
+                  "name": getattr(lib, "name", str(lib)),
+                  "current_version": getattr(lib, "current_version", None),
+                  "compatibility_version": getattr(lib, "compatibility_version", None),
              })
         return libs
 
@@ -117,6 +126,39 @@ class AnalysisManager:
             """
             if self.binary is None:
                 return None
+
+            header = getattr(self.binary, "header", None)
+            if header is None and hasattr(self.binary, "concrete"):
+                header = getattr(self.binary.concrete, "header", None)
+
+            # Resolve architecture across LIEF formats (ELF/PE/Mach-O)
+            architecture = None
+            if header is not None:
+                for attr in ("cpu_type", "machine_type", "machine", "arch"):
+                    value = getattr(header, attr, None)
+                    if value is not None:
+                        architecture = getattr(value, "name", str(value))
+                        break
+            if architecture is None:
+                value = getattr(self.binary, "architecture", None)
+                if value is not None:
+                    architecture = getattr(value, "name", str(value))
+
+            # Resolve bits across formats
+            bits = None
+            if header is not None:
+                for attr in ("is_64bit", "is_64", "bits"):
+                    value = getattr(header, attr, None)
+                    if isinstance(value, bool):
+                        bits = 64 if value else 32
+                        break
+                    if isinstance(value, int):
+                        bits = value
+                        break
+            if bits is None:
+                value = getattr(self.binary, "is_64", None)
+                if isinstance(value, bool):
+                    bits = 64 if value else 32
 
             min_addr = float('inf')
             max_addr = 0
@@ -139,13 +181,13 @@ class AnalysisManager:
                         "filepath": str(self.filepath),
                         "name": self.filepath.stem,
                         "format": self.binary.format.name,
-                        "image_base": hex(self.binary.imagebase),
-                        "entrypoint": hex(self.binary.entrypoint),
-                        "architecture": self.binary.concrete.header.cpu_type.name,
-                        "bits": 64 if self.binary.concrete.header.is_64bit else 32, 
-                        "encryption_info": self.binary.encryption_info,
-                        "is_pie": self.binary.is_pie,
-                        "has_nx": self.binary.has_nx,
+                        "image_base": hex(getattr(self.binary, "imagebase", 0)),
+                        "entrypoint": hex(getattr(self.binary, "entrypoint", 0)),
+                        "architecture": architecture,
+                        "bits": bits, 
+                        "encryption_info": getattr(self.binary, "encryption_info", None),
+                        "is_pie": getattr(self.binary, "is_pie", None),
+                        "has_nx": getattr(self.binary, "has_nx", None),
                         "min_address": hex(min_addr) if min_addr != float('inf') else "0x0",
                         "max_address": hex(max_addr),
                         "virtual_size": hex(self.binary.virtual_size),  # Binary.virtual_size -> int
