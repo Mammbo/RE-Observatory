@@ -42,7 +42,7 @@ const TriageOverview = () => {
     return ( 
         <div 
         className={" px-4 py-3 text-sm text-gray-200 space-y-4"}>
-            <Accordion selectionMode="multiple">
+            <Accordion selectionMode="multiple" className="flex flex-col gap-3">
                 <AccordionItem
                     key="1"
                     aria-label="Imports"
@@ -50,16 +50,59 @@ const TriageOverview = () => {
                     classNames={{
                         trigger: "justify-start",
                         title: "text-base font-semibold text-left",
-                        content: "max-h-[200px] overflow-y-auto"
+                        content: "max-h-[200px] overflow-y-auto overflow-x-hidden relative node-scrollbar",
+                        indicator: "transition-transform duration-200 data-[open=true]:-rotate-90"
                     }}
                 >
-                    {meta.imports.map((item, index) => {
-                        return ( 
-                            <div key={index}>
-                                {item.name} - {item.address}
-                            </div>
-                        ) 
-                    })}
+                    <div className="px-1 py-1 text-[10px] uppercase tracking-wide text-gray-400 border-b border-white/10">
+                        <div className="flex justify-between gap-3">
+                            <span>Function</span>
+                            <span>Address</span>
+                        </div>
+                    </div>
+                    <div className="pt-2 space-y-1">
+                        {meta.imports?.length > 0 ? (
+                            meta.imports.map((item, index) => (
+                                <div key={index} className="flex justify-between gap-3">
+                                    <span className="truncate">{item.name}</span>
+                                    <span className="font-mono text-gray-400">{item.address}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-gray-500 text-sm py-2">No imports found</div>
+                        )}
+                    </div>
+                </AccordionItem>
+
+                <AccordionItem
+                    key="2"
+                    aria-label="Exports"
+                    title="Exports"
+                    classNames={{
+                        trigger: "justify-start",
+                        title: "text-base font-semibold text-left",
+                        content: "max-h-[200px] overflow-y-auto overflow-x-hidden relative node-scrollbar",
+                        indicator: "transition-transform duration-200 data-[open=true]:-rotate-90"
+                    }}
+                >
+                    <div className="px-1 py-1 text-[10px] uppercase tracking-wide text-gray-400 border-b border-white/10">
+                        <div className="flex justify-between gap-3">
+                            <span>Function</span>
+                            <span>Address</span>
+                        </div>
+                    </div>
+                    <div className="pt-2 space-y-1">
+                        {meta.exports?.length > 0 ? (
+                            meta.exports.map((item, index) => (
+                                <div key={index} className="flex justify-between gap-3">
+                                    <span className="truncate">{item.name}</span>
+                                    <span className="font-mono text-gray-400">{item.address}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-gray-500 text-sm py-2">No exports found</div>
+                        )}
+                    </div>
                 </AccordionItem>
             </Accordion>
         </div>
