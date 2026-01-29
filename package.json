@@ -55,6 +55,7 @@
     "cytoscape": "^3.33.1",
     "cytoscape-dagre": "^2.5.0",
     "framer-motion": "^12.29.2",
+    "fuse.js": "^7.1.0",
     "install": "^0.13.0",
     "npm": "^11.7.0",
     "postcss": "^8.5.6",
