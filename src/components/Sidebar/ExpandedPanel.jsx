@@ -7,16 +7,24 @@ const ExpandedPanel = ({activePanel, width, children}) => {
 
     useEffect(() => {
         let timer;
+        let rafId;
         if (activePanel) {
             setShouldRender(true);
-            // Small delay to ensure browser paints hidden state first
-            timer = setTimeout(() => setIsVisible(true), 10);
+            // Double RAF ensures browser has painted the initial state
+            rafId = requestAnimationFrame(() => {
+                rafId = requestAnimationFrame(() => {
+                    setIsVisible(true);
+                });
+            });
         } else {
             setIsVisible(false);
             // Wait for exit animation to complete before unmounting
             timer = setTimeout(() => setShouldRender(false), 300);
         }
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+            cancelAnimationFrame(rafId);
+        };
     }, [activePanel])
     if (!shouldRender) return null;
     return (

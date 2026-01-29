@@ -13,11 +13,17 @@ const NodePanel = () => {
 
     useEffect(() => {
         let timer;
+        let rafId;
         if (hasActivePanel) {
             setCurrentPanel(activePanel);
             setCurrentData(panels[activePanel]);
             setShouldRender(true);
-            timer = setTimeout(() => setIsVisible(true), 10);
+            // Double RAF ensures browser has painted the initial state
+            rafId = requestAnimationFrame(() => {
+                rafId = requestAnimationFrame(() => {
+                    setIsVisible(true);
+                });
+            });
         } else {
             setIsVisible(false);
             timer = setTimeout(() => {
@@ -26,7 +32,10 @@ const NodePanel = () => {
                 setCurrentData(null);
             }, 300);
         }
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+            cancelAnimationFrame(rafId);
+        };
     }, [hasActivePanel, activePanel, panels]);
 
     if (!shouldRender || !currentData) return null;

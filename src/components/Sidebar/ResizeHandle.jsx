@@ -1,13 +1,14 @@
 import useSideBarStore from '../../store/sideBarStore';
 
-const ResizableHandle = () => {    
-    const { panelWidth, minPanelWidth, maxPanelWidth, setPanelWidth } = useSideBarStore();
+const ResizableHandle = () => {
+    const { panelWidth, minPanelWidth, maxPanelWidth, setPanelWidth, setIsResizing } = useSideBarStore();
     const handleMouseDown = (e) => {
         e.preventDefault();
+        setIsResizing(true);
         const x = e.clientX;
         const initialWidth = panelWidth;
 
-            const mouseMoveHandler = (e) => { 
+            const mouseMoveHandler = (e) => {
                 const dx = e.clientX - x; // Resize from left to right
                 const newWidth = initialWidth + dx;
 
@@ -16,7 +17,8 @@ const ResizableHandle = () => {
                 }
             };
 
-            const mouseUpHandler = () => { 
+            const mouseUpHandler = () => {
+                setIsResizing(false);
                 document.removeEventListener('mouseup', mouseUpHandler);
                 document.removeEventListener('mousemove', mouseMoveHandler);
             };

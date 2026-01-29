@@ -13,6 +13,10 @@ const SearchBar = ({ data }) => {
             // Exports
             'exports.name',
             'exports.address',
+            // Libraries
+            'libraries.name',
+            'libraries.compatibility_version',
+            'libraries.current_version',
             // Strings - Static
             'strings.static.ascii',
             'strings.static.utf16',

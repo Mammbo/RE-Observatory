@@ -1,10 +1,11 @@
 import { useCFGNodeStore } from '../../store/cfgNodeStore';
 
 const NodePanelResizeHandle = () => {
-    const { panelWidth, minPanelWidth, maxPanelWidth, setPanelWidth } = useCFGNodeStore();
+    const { panelWidth, minPanelWidth, maxPanelWidth, setPanelWidth, setIsResizing } = useCFGNodeStore();
 
     const handleMouseDown = (e) => {
         e.preventDefault();
+        setIsResizing(true);
         const x = e.clientX;
         const initialWidth = panelWidth;
 
@@ -19,6 +20,7 @@ const NodePanelResizeHandle = () => {
         };
 
         const mouseUpHandler = () => {
+            setIsResizing(false);
             document.removeEventListener('mouseup', mouseUpHandler);
             document.removeEventListener('mousemove', mouseMoveHandler);
         };

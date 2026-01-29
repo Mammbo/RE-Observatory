@@ -45,17 +45,17 @@ const TriageOverview = () => {
                     }}
                 >
                     <div className="px-1 py-1 text-[10px] uppercase tracking-wide text-gray-400 border-b border-white/10">
-                        <div className="flex justify-between gap-3">
+                        <div className="grid grid-cols-2 gap-3">
                             <span>Function</span>
-                            <span>Address</span>
+                            <span className="text-right">Address</span>
                         </div>
                     </div>
                     <div className="pt-2 space-y-1">
                         {meta.imports?.length > 0 ? (
                             meta.imports.map((item, index) => (
-                                <div key={index} className="flex justify-between gap-3">
+                                <div key={index} className="grid grid-cols-2 gap-3">
                                     <span className="truncate">{item.name}</span>
-                                    <span className="font-mono text-gray-400">{item.address}</span>
+                                    <span className="font-mono text-gray-400 text-right">{item.address}</span>
                                 </div>
                             ))
                         ) : (
@@ -76,21 +76,189 @@ const TriageOverview = () => {
                     }}
                 >
                     <div className="px-1 py-1 text-[10px] uppercase tracking-wide text-gray-400 border-b border-white/10">
-                        <div className="flex justify-between gap-3">
+                        <div className="grid grid-cols-2 gap-3">
                             <span>Function</span>
-                            <span>Address</span>
+                            <span className="text-right">Address</span>
                         </div>
                     </div>
                     <div className="pt-2 space-y-1">
                         {meta.exports?.length > 0 ? (
                             meta.exports.map((item, index) => (
-                                <div key={index} className="flex justify-between gap-3">
+                                <div key={index} className="grid grid-cols-2 gap-3">
                                     <span className="truncate">{item.name}</span>
-                                    <span className="font-mono text-gray-400">{item.address}</span>
+                                    <span className="font-mono text-gray-400 text-right">{item.address}</span>
                                 </div>
                             ))
                         ) : (
                             <div className="text-gray-500 text-sm py-2">No exports found</div>
+                        )}
+                    </div>
+                </AccordionItem>
+
+                <AccordionItem
+                    key="3"
+                    aria-label="Libraries"
+                    title="Libraries"
+                    classNames={{
+                        trigger: "justify-start",
+                        title: "text-base font-semibold text-left",
+                        content: "max-h-[200px] overflow-y-auto overflow-x-hidden relative node-scrollbar",
+                        indicator: "transition-transform duration-200 data-[open=true]:-rotate-90"
+                    }}
+                >
+                    <div className="px-1 py-1 text-[10px] uppercase tracking-wide text-gray-400 border-b border-white/10">
+                        <div className="grid grid-cols-3 gap-3">
+                            <span>Name</span>
+                            <span className="text-center">Current Version</span>
+                            <span className="text-right">Compatibility Version</span>
+                        </div>
+                    </div>
+                    <div className="pt-2 space-y-1">
+                        {meta.libraries?.length > 0 ? (
+                            meta.libraries.map((item, index) => (
+                                <div key={index} className="grid grid-cols-3 gap-3">
+                                    <span className="truncate">{item.name}</span>
+                                    <span className="font-mono text-gray-400 text-center">{item.current_version?.join('.')}</span>
+                                    <span className="font-mono text-gray-400 text-right">{item.compatibility_version?.join('.')}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-gray-500 text-sm py-2">No libraries found</div>
+                        )}
+                    </div>
+                </AccordionItem>
+
+                <AccordionItem
+                    key="4"
+                    aria-label="ASCII Strings"
+                    title="ASCII Strings"
+                    classNames={{
+                        trigger: "justify-start",
+                        title: "text-base font-semibold text-left",
+                        content: "max-h-[200px] overflow-y-auto overflow-x-hidden relative node-scrollbar",
+                        indicator: "transition-transform duration-200 data-[open=true]:-rotate-90"
+                    }}
+                >
+                    <div className="px-1 py-1 text-[10px] uppercase tracking-wide text-gray-400 border-b border-white/10">
+                        <span>String</span>
+                    </div>
+                    <div className="pt-2 space-y-1">
+                        {meta.strings?.static?.ascii?.length > 0 ? (
+                            meta.strings.static.ascii.map((str, index) => (
+                                <div key={index} className="truncate font-mono text-gray-300">
+                                    {str}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-gray-500 text-sm py-2">No ASCII strings found</div>
+                        )}
+                    </div>
+                </AccordionItem>
+
+                <AccordionItem
+                    key="5"
+                    aria-label="UTF-16 Strings"
+                    title="UTF-16 Strings"
+                    classNames={{
+                        trigger: "justify-start",
+                        title: "text-base font-semibold text-left",
+                        content: "max-h-[200px] overflow-y-auto overflow-x-hidden relative node-scrollbar",
+                        indicator: "transition-transform duration-200 data-[open=true]:-rotate-90"
+                    }}
+                >
+                    <div className="px-1 py-1 text-[10px] uppercase tracking-wide text-gray-400 border-b border-white/10">
+                        <span>String</span>
+                    </div>
+                    <div className="pt-2 space-y-1">
+                        {meta.strings?.static?.utf16?.length > 0 ? (
+                            meta.strings.static.utf16.map((str, index) => (
+                                <div key={index} className="truncate font-mono text-gray-300">
+                                    {str}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-gray-500 text-sm py-2">No UTF-16 strings found</div>
+                        )}
+                    </div>
+                </AccordionItem>
+
+                <AccordionItem
+                    key="6"
+                    aria-label="Stack Strings"
+                    title="Stack Strings"
+                    classNames={{
+                        trigger: "justify-start",
+                        title: "text-base font-semibold text-left",
+                        content: "max-h-[200px] overflow-y-auto overflow-x-hidden relative node-scrollbar",
+                        indicator: "transition-transform duration-200 data-[open=true]:-rotate-90"
+                    }}
+                >
+                    <div className="px-1 py-1 text-[10px] uppercase tracking-wide text-gray-400 border-b border-white/10">
+                        <span>String</span>
+                    </div>
+                    <div className="pt-2 space-y-1">
+                        {meta.strings?.advanced?.stack?.length > 0 ? (
+                            meta.strings.advanced.stack.map((str, index) => (
+                                <div key={index} className="truncate font-mono text-gray-300">
+                                    {str}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-gray-500 text-sm py-2">No stack strings found</div>
+                        )}
+                    </div>
+                </AccordionItem>
+
+                <AccordionItem
+                    key="7"
+                    aria-label="Tight Strings"
+                    title="Tight Strings"
+                    classNames={{
+                        trigger: "justify-start",
+                        title: "text-base font-semibold text-left",
+                        content: "max-h-[200px] overflow-y-auto overflow-x-hidden relative node-scrollbar",
+                        indicator: "transition-transform duration-200 data-[open=true]:-rotate-90"
+                    }}
+                >
+                    <div className="px-1 py-1 text-[10px] uppercase tracking-wide text-gray-400 border-b border-white/10">
+                        <span>String</span>
+                    </div>
+                    <div className="pt-2 space-y-1">
+                        {meta.strings?.advanced?.tight?.length > 0 ? (
+                            meta.strings.advanced.tight.map((str, index) => (
+                                <div key={index} className="truncate font-mono text-gray-300">
+                                    {str}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-gray-500 text-sm py-2">No tight strings found</div>
+                        )}
+                    </div>
+                </AccordionItem>
+
+                <AccordionItem
+                    key="8"
+                    aria-label="Decoded Strings"
+                    title="Decoded Strings"
+                    classNames={{
+                        trigger: "justify-start",
+                        title: "text-base font-semibold text-left",
+                        content: "max-h-[200px] overflow-y-auto overflow-x-hidden relative node-scrollbar",
+                        indicator: "transition-transform duration-200 data-[open=true]:-rotate-90"
+                    }}
+                >
+                    <div className="px-1 py-1 text-[10px] uppercase tracking-wide text-gray-400 border-b border-white/10">
+                        <span>String</span>
+                    </div>
+                    <div className="pt-2 space-y-1">
+                        {meta.strings?.obfuscated?.decode?.length > 0 ? (
+                            meta.strings.obfuscated.decode.map((str, index) => (
+                                <div key={index} className="truncate font-mono text-gray-300">
+                                    {str}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-gray-500 text-sm py-2">No decoded strings found</div>
                         )}
                     </div>
                 </AccordionItem>

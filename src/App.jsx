@@ -19,8 +19,8 @@ function App() {
 
   const [binaryPath, setBinaryPath] = useState(null);
 
-  const {activePanel, panelWidth} = useSideBarStore();
-  const { activePanel: nodePanel, panelWidth: nodePanelWidth } = useCFGNodeStore();
+  const {activePanel, panelWidth, isResizing: isSidebarResizing} = useSideBarStore();
+  const { activePanel: nodePanel, panelWidth: nodePanelWidth, isResizing } = useCFGNodeStore();
   const { setAnalysisData: setStoreAnalysisData, setIsLoading: setStoreLoading } = useAnalysisStore();
 
   // Sync analysis data to store for use by other components
@@ -103,7 +103,7 @@ function App() {
                 `}
               >
                 <main
-                  className="flex h-screen transition-[margin] duration-300 ease-in-out"
+                  className={`flex h-screen ${!isResizing && !isSidebarResizing ? 'transition-[margin] duration-300 ease-in-out' : ''}`}
                   style={{
                     marginLeft: `${64 + (activePanel ? panelWidth : 0)}px`,
                     marginRight: `${nodePanel ? nodePanelWidth : 0}px`,
