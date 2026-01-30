@@ -6,14 +6,22 @@ const CFGNode = ({data}) => {
     const { togglePanel, activePanel } = useCFGNodeStore();
     const isActive = activePanel === data.src;
 
+    const highlightClass = isActive
+        ? 'node-selected node-layer'
+        : data.isEntry
+            ? 'node-entry'
+            : data.isMajor
+                ? 'node-major'
+                : '';
+
     return (
-        <div className={`node-base nodrag w-50 h-25 cursor-pointer ${isActive ? 'node-selected node-layer' : 'transition-all duration-300 ease-out'}`} onClick={() => togglePanel(data.src)}> 
+        <div className={`node-base nodrag w-50 h-25 cursor-pointer transition-all duration-300 ease-out ${highlightClass}`} onClick={() => togglePanel(data.src)}> 
             <div className="node-content"> 
                 <div className="node-layer node-layer-visible">
                     <div className="flex flex-col justify-center items-center ">
                         <span className="address px-2 pt-4 rounded">{data.src}</span>
                         <div className="border-b border-node-border w-45"></div>
-                        <span className="type px-2 pt-1 rounded">{data.type}james</span>
+                        <span className="type px-2 pt-1 rounded">{data.type}</span>
                     </div>
                 </div>
             </div>

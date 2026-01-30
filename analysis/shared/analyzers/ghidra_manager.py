@@ -281,7 +281,7 @@ class GhidraManager:
 
         Returns:
             {
-            "nodes": { addr: name },
+            "nodes": { addr: {name, type} },
             "edges": [ {src, dst} ]
             }
         """
@@ -301,7 +301,18 @@ class GhidraManager:
 
         for f in funcs:
             src = hex(f.getEntryPoint().getOffset())
-            nodes[src] = f.getName()
+
+            if f.isThunk():
+                ftype = "thunk"
+            elif f.isExternal():
+                ftype = "external"
+            else:
+                ftype = str(f.getReturnType())
+
+            nodes[src] = {
+                "name": f.getName(),
+                "type": ftype
+            }
 
             called = f.getCalledFunctions(monitor)
             for callee in called:

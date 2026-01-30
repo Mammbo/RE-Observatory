@@ -146,6 +146,16 @@
     box-shadow: 0 0 0 1px var(--color-node-mauve), 0 4px 12px rgba(203, 166, 247, 0.2);
   }
 
+  .node-entry {
+    border-color: var(--color-node-green);
+    box-shadow: 0 0 0 1px var(--color-node-green), 0 4px 16px rgba(166, 227, 161, 0.3);
+  }
+
+  .node-major {
+    border-color: var(--color-node-peach);
+    box-shadow: 0 0 0 1px var(--color-node-peach), 0 4px 12px rgba(250, 179, 135, 0.2);
+  }
+
    .type {
     font-size: 20px;
     font-weight: 700;
