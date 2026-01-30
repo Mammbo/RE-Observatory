@@ -7,44 +7,59 @@ import AddNodeButton from './AddNoteButton';
 import renderEdges from './edges';
 import renderNodes from './nodes';
 import useAnalysisStore from '../../store/analysisStore';
-import dagre from 'dagre'
+import ELK from 'elkjs/lib/elk.bundled.js'
+import { m } from 'framer-motion';
 
-// initalize dagreGraph 
-const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
+// initalize ELKGraph 
+const elk = new ELK();
 
 // CFGNode dimensions: w-50 = 200px, h-25 = 100px
-const nodeWidth = 200;
-const nodeHeight = 100;
+const nodeWidth = 160;
+const nodeHeight = 80;
 
 // layout of dagreGraph
-const getLayoutedElements = (nodes, edges, direction = 'TB') => {
-    const isHorizontal = direction === 'LR';
-    dagreGraph.setGraph({ rankdir: direction });
+const getLayoutedElements = async (nodes, edges, direction = 'DOWN') => {
+    const elkGraph = { 
+        id: 'root',
+        layoutOptions: {
+            'elk.algorithm': 'layered',
+            // Space between nodes on the same level (like nodesep in dagre)                                           
+            'elk.spacing.nodeNode': '30',                                                                              
+            // Space between levels/layers (like ranksep in dagre)                                                     
+            'elk.layered.spacing.nodeNodeBetweenLayers': '50',  
+            //direction for elk 
+            'elk.direction': direction,    
+            'elk.layer.crossingMinimization.strategy': 'LAYER_SWEEP',
+            'elk.layered.spacing.edgeNodeBetweenLayers': '20',
+            'elk.spacing.edgeNode': '20',
+            'elk.spacing.edgeEdge': '15',
+            'elk.layered.edgeRouting': 'ORTHOGONAL'                               
+        },
+        children: nodes.map((node) => ({
+            id: node.id, 
+            width: nodeWidth,
+            height: nodeHeight,
+        })),
+        edges: edges.map((edge) => ({
+            id: edge.id,
+            sources: [edge.source],
+            targets: [edge.target],
+        })),
+    }
 
-    nodes.forEach((node) => {
-        dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
-    });
+    const layoutedGraph = await elk.layout(elkGraph);
 
-    edges.forEach((edge) => {
-        dagreGraph.setEdge(edge.source, edge.target);
-    });
-
-    dagre.layout(dagreGraph);
-
-    const newNodes = nodes.map((node) => {
-        const nodeWithPosition = dagreGraph.node(node.id);
-        const newNode = {
+    const layoutedNodes = nodes.map((node) => { 
+        const elkNode = layoutedGraph.children.find((n) => n.id === node.id);
+        return { 
             ...node,
-            targetPosition: isHorizontal ? 'left' : 'top',
-            sourcePosition: isHorizontal ? 'right' : 'bottom',
-            position: {
-                x: nodeWithPosition.x - nodeWidth / 2,
-                y: nodeWithPosition.y - nodeHeight / 2,
-            },
+            position : { x: elkNode.x, y: elkNode.y},
+            targetPosition: direction === 'RIGHT' ? 'left' : 'top',                                                    
+            sourcePosition: direction === 'RIGHT' ? 'right' : 'bottom',   
         };
-        return newNode;
     });
-    return { nodes: newNodes, edges };
+
+    return { nodes: layoutedNodes, edges };
 };
 
 
@@ -90,9 +105,13 @@ const CanvasView = () => {
                 },
             }));
 
-            const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(enrichedNodes, rawEdges);
+            const layoutGraph = async () => { 
+                const { nodes: layoutedNodes, edges: layoutedEdges } = 
+                await getLayoutedElements(enrichedNodes, rawEdges);
             setNodes(layoutedNodes);
             setEdges(layoutedEdges);
+            }
+            layoutGraph();
         }
     }, [isLoading, analysisData]);
     // on Node Changes 
@@ -109,8 +128,8 @@ const CanvasView = () => {
         [],
     );
     const onLayout = useCallback(
-        (direction) => {
-            const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(nodes, edges, direction);
+        async (direction) => {
+            const { nodes: layoutedNodes, edges: layoutedEdges } =  await getLayoutedElements(nodes, edges, direction);
             setNodes([...layoutedNodes]);
             setEdges([...layoutedEdges]);
         },
@@ -132,18 +151,18 @@ const CanvasView = () => {
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
-                        connectionLineType={ConnectionLineType.SmoothStep}
-                        defaultEdgeOptions={{ type: 'smoothstep' }}
+                        connectionLineType={ConnectionLineType.SimpleBezier}
+                        defaultEdgeOptions={{ type: 'simplebezier' }}
                         selectionMode={SelectionMode.Partial}
                         colorMode='dark'
                         minZoom={0.1}
                         fitView
                         >
                         <Panel position="top-right" className="flex gap-2">
-                            <button className="px-3 py-1 bg-elevated text-text-primary rounded hover:bg-active text-sm" onClick={() => onLayout('TB')}>
+                            <button className="px-3 py-1 bg-elevated text-text-primary rounded hover:bg-active text-sm" onClick={() => onLayout('DOWN')}>
                             Vertical
                             </button>
-                            <button className="px-3 py-1 bg-elevated text-text-primary rounded hover:bg-active text-sm" onClick={() => onLayout('LR')}>
+                            <button className="px-3 py-1 bg-elevated text-text-primary rounded hover:bg-active text-sm" onClick={() => onLayout('RIGHT')}>
                             Horizontal
                             </button>
                         </Panel>

@@ -135,9 +135,15 @@
     @apply opacity-0 translate-y-4 pointer-events-none;
   }
    .address {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--color-node-red);
+  }
+
+   .FuncName {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-node-green);
   }
 
   .node-selected {
@@ -157,7 +163,7 @@
   }
 
    .type {
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 700;
     color: var(--color-node-blue);
   }

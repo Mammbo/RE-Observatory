@@ -15,10 +15,12 @@ const CFGNode = ({data}) => {
                 : '';
 
     return (
-        <div className={`node-base nodrag w-50 h-25 cursor-pointer transition-all duration-300 ease-out ${highlightClass}`} onClick={() => togglePanel(data.src)}> 
+        <div className={`node-base nodrag w-40 h-20 cursor-pointer transition-all duration-300 ease-out ${highlightClass}`} onClick={() => togglePanel(data.src)}> 
             <div className="node-content"> 
                 <div className="node-layer node-layer-visible">
                     <div className="flex flex-col justify-center items-center ">
+                        <span className="FuncName px-2 pt-4 rounded">{data.name}</span>
+                         <div className="border-b border-node-border w-45"></div>
                         <span className="address px-2 pt-4 rounded">{data.src}</span>
                         <div className="border-b border-node-border w-45"></div>
                         <span className="type px-2 pt-1 rounded">{data.type}</span>
