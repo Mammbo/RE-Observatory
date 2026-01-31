@@ -1,12 +1,17 @@
 import { ReactFlow, ReactFlowProvider, Background, Controls, applyEdgeChanges, applyNodeChanges, addEdge, SelectionMode, MiniMap, ConnectionLineType, Panel } from '@xyflow/react';
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import '@xyflow/react/dist/style.css';
 import NoteNode from './NoteNode';
 import CFGNode from './CFGNode';
 import AddNodeButton from './AddNoteButton';
+import NodeContextMenu from './NodeContextMenu';
+import LayoutButtons from './LayoutButtons';
+import DepthSlider from './DepthSlider';
 import renderEdges from './edges';
 import renderNodes from './nodes';
 import useAnalysisStore from '../../store/analysisStore';
+import { resolveCollisions } from './resolveCollisions';
+import { bfsFromRoot, getMaxDepth } from './bfsNode';
 import ELK from 'elkjs/lib/elk.bundled.js'
 
 
@@ -76,6 +81,12 @@ const CanvasView = () => {
     const { isLoading, analysisData } = useAnalysisStore();
     const [nodes, setNodes] = useState([]);
     const [edges, setEdges] = useState([]);
+    const [depthLimit, setDepthLimit] = useState(null);
+    const [maxDepthValue, setMaxDepthValue] = useState(1);
+    const [filterRoot, setFilterRoot] = useState(null);
+    const entryNodeRef = useRef(null);
+    const enrichedNodesRef = useRef([]);
+    const rawEdgesRef = useRef([]);
 
     // When analysis is done and call graph exists, render and layout
     useEffect(() => {
@@ -105,6 +116,8 @@ const CanvasView = () => {
                 || Object.entries(connectionCount).sort((a, b) => b[1] - a[1])[0]?.[0]
                 || rawNodes[0]?.id;
 
+            entryNodeRef.current = entryNodeId;
+
             // Enrich nodes with highlight info and sizing
             const enrichedNodes = rawNodes.map((node) => {
                 const cc = connectionCount[node.id] || 0;
@@ -127,8 +140,17 @@ const CanvasView = () => {
                 };
             });
 
-            const layoutGraph = async () => { 
-                const { nodes: layoutedNodes, edges: layoutedEdges } = 
+            // Store enriched data for depth filtering later
+            enrichedNodesRef.current = enrichedNodes;
+            rawEdgesRef.current = rawEdges;
+
+            // Compute max depth from entry node
+            const computedMaxDepth = getMaxDepth(entryNodeId, rawEdges);
+            setMaxDepthValue(computedMaxDepth);
+            setDepthLimit(computedMaxDepth);
+
+            const layoutGraph = async () => {
+                const { nodes: layoutedNodes, edges: layoutedEdges } =
                 await getLayoutedElements(enrichedNodes, rawEdges);
             setNodes(layoutedNodes);
             setEdges(layoutedEdges);
@@ -136,6 +158,49 @@ const CanvasView = () => {
             layoutGraph();
         }
     }, [isLoading, analysisData]);
+
+    // Re-layout when depthLimit or filterRoot changes
+    useEffect(() => {
+        if (depthLimit === null || enrichedNodesRef.current.length === 0) return;
+
+        const rootId = filterRoot || entryNodeRef.current;
+        if (!rootId) return;
+
+        // Recompute max depth from the current root first
+        const newMax = getMaxDepth(rootId, rawEdgesRef.current);
+        setMaxDepthValue(newMax);
+
+        // Clamp depthLimit to the new max so the slider and BFS stay in sync
+        const effectiveDepth = Math.min(depthLimit, newMax);
+
+        const isDefaultView = !filterRoot && effectiveDepth >= newMax;
+        let filteredNodes, filteredEdges;
+
+        if (isDefaultView) {
+            // Show entire graph including disconnected nodes
+            filteredNodes = enrichedNodesRef.current;
+            filteredEdges = rawEdgesRef.current;
+        } else {
+            const visibleIds = bfsFromRoot(rootId, rawEdgesRef.current, effectiveDepth);
+            filteredNodes = enrichedNodesRef.current.filter((n) => visibleIds.has(n.id));
+            filteredEdges = rawEdgesRef.current.filter(
+                (e) => visibleIds.has(e.source) && visibleIds.has(e.target)
+            );
+        }
+
+        // Update depthLimit if it exceeds the new max
+        if (depthLimit > newMax) {
+            setDepthLimit(newMax);
+        }
+
+        const layoutGraph = async () => {
+            const { nodes: layoutedNodes, edges: layoutedEdges } =
+                await getLayoutedElements(filteredNodes, filteredEdges);
+            setNodes(layoutedNodes);
+            setEdges(layoutedEdges);
+        };
+        layoutGraph();
+    }, [depthLimit, filterRoot]);
     // on Node Changes 
     const onNodesChange = useCallback(
         (changes) => setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot)),
@@ -149,6 +214,30 @@ const CanvasView = () => {
         (params) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
         [],
     );
+    const [contextMenu, setContextMenu] = useState(null);
+    const flowRef = useRef(null);
+    const onNodeContextMenu = useCallback((event, node) => {
+        event.preventDefault();
+        const pane = flowRef.current.getBoundingClientRect();
+        setContextMenu({
+            id: node.id,
+            name: node.data?.name || node.id,
+            top: event.clientY < pane.height - 200 ? event.clientY : false,
+            left: event.clientX < pane.width - 200 ? event.clientX : false,
+            right: event.clientX >= pane.width - 200 ? pane.width - event.clientX : false,
+            bottom: event.clientY >= pane.height - 200 ? pane.height - event.clientY : false,
+        });
+    }, []);
+    const onPaneClick = useCallback(() => setContextMenu(null), []);
+    const onNodeDragStop = useCallback(() => {
+        setNodes((nds) =>
+            resolveCollisions(nds, {
+                maxIterations: Infinity,
+                overlapThreshold: 0.5,
+                margin: 15,
+            }),
+        );
+    }, [setNodes]);
     const onLayout = useCallback(
         async (direction) => {
             const { nodes: layoutedNodes, edges: layoutedEdges } =  await getLayoutedElements(nodes, edges, direction);
@@ -167,12 +256,16 @@ const CanvasView = () => {
                 </div>
                 <ReactFlowProvider>
                     <ReactFlow
+                        ref={flowRef}
                         nodes={nodes}
                         edges={edges}
                         nodeTypes={nodeTypes}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
+                        onNodeDragStop={onNodeDragStop}
+                        onNodeContextMenu={onNodeContextMenu}
+                        onPaneClick={onPaneClick}
                         connectionLineType={ConnectionLineType.SimpleBezier}
                         defaultEdgeOptions={{ type: 'simplebezier' }}
                         selectionMode={SelectionMode.Partial}
@@ -180,19 +273,30 @@ const CanvasView = () => {
                         minZoom={0.1}
                         fitView
                         >
-                        <Panel position="top-right" className="flex gap-2">
-                            <button className="px-3 py-1 bg-elevated text-text-primary rounded hover:bg-active text-sm" onClick={() => onLayout('DOWN')}>
-                            Vertical
-                            </button>
-                            <button className="px-3 py-1 bg-elevated text-text-primary rounded hover:bg-active text-sm" onClick={() => onLayout('RIGHT')}>
-                            Horizontal
-                            </button>
+                        <Panel position="top-right" className="flex flex-col gap-2">
+                            <LayoutButtons onLayout={onLayout} />
+                            <DepthSlider
+                                depthLimit={depthLimit}
+                                maxDepthValue={maxDepthValue}
+                                onDepthChange={setDepthLimit}
+                                onReset={() => {
+                                    setFilterRoot(null);
+                                    const max = getMaxDepth(entryNodeRef.current, rawEdgesRef.current);
+                                    setMaxDepthValue(max);
+                                    setDepthLimit(max);
+                                }}
+                            />
                         </Panel>
                         <MiniMap nodeStrokeWidth={3} zoomable pannable />
                         <Background />
                         <Controls>
                             <AddNodeButton />    
                         </Controls>    
+                        <NodeContextMenu
+                            contextMenu={contextMenu}
+                            onSetRoot={setFilterRoot}
+                            onClose={() => setContextMenu(null)}
+                        />
                     </ReactFlow>
                 </ReactFlowProvider>
             </div>

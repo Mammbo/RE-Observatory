@@ -15,7 +15,7 @@ const CFGNode = ({data}) => {
                 : '';
 
     return (
-        <div className={`node-base nodrag cursor-pointer transition-all duration-300 ease-out ${highlightClass}`} style={{ width: data.nodeWidth, height: data.nodeHeight }} onClick={() => togglePanel(data.src)}>
+        <div className={`node-base nodrag cursor-pointer transition-all duration-300 ease-out ${highlightClass}`} style={{ width: data.nodeWidth, height: data.nodeHeight }} onDoubleClick={() => togglePanel(data.src)}>
             <div className="node-content"> 
                 <div className="node-layer node-layer-visible">
                     <div className="flex flex-col justify-between items-center w-full h-full px-2 py-2">
