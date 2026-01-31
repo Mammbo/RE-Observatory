@@ -1,10 +1,11 @@
-// implement utility class no drig
+import { memo } from 'react';
 import {Handle, Position} from "@xyflow/react";
 import { useCFGNodeStore } from '../../store/cfgNodeStore';
 
-const CFGNode = ({data}) => {
-    const { togglePanel, activePanel } = useCFGNodeStore();
-    const isActive = activePanel === data.src;
+const CFGNode = memo(({data}) => {
+    // Only subscribe to what this specific node needs — avoids re-rendering all nodes when activePanel changes
+    const togglePanel = useCFGNodeStore((s) => s.togglePanel);
+    const isActive = useCFGNodeStore((s) => s.activePanel === data.src);
 
     const highlightClass = isActive
         ? 'node-selected node-layer'
@@ -16,7 +17,7 @@ const CFGNode = ({data}) => {
 
     return (
         <div className={`node-base nodrag cursor-pointer transition-all duration-300 ease-out ${highlightClass}`} style={{ width: data.nodeWidth, height: data.nodeHeight }} onDoubleClick={() => togglePanel(data.src)}>
-            <div className="node-content"> 
+            <div className="node-content">
                 <div className="node-layer node-layer-visible">
                     <div className="flex flex-col justify-between items-center w-full h-full px-2 py-2">
                         <span className="FuncName w-full text-center">{data.name}</span>
@@ -27,17 +28,17 @@ const CFGNode = ({data}) => {
                     </div>
                 </div>
             </div>
-             {/* Handles for connections - each side has source + target */}                                                                                                                                                                                  
-            <Handle type="target" position={Position.Top} id="top-target" />                                                                                                                                                                                 
-            <Handle type="source" position={Position.Top} id="top-source" />                                                                                                                                                                                 
-            <Handle type="target" position={Position.Bottom} id="bottom-target" />                                                                                                                                                                           
-            <Handle type="source" position={Position.Bottom} id="bottom-source" />                                                                                                                                                                           
-            <Handle type="target" position={Position.Left} id="left-target" />                                                                                                                                                                               
-            <Handle type="source" position={Position.Left} id="left-source" />                                                                                                                                                                               
-            <Handle type="target" position={Position.Right} id="right-target" />                                                                                                                                                                             
+             {/* Handles for connections - each side has source + target */}
+            <Handle type="target" position={Position.Top} id="top-target" />
+            <Handle type="source" position={Position.Top} id="top-source" />
+            <Handle type="target" position={Position.Bottom} id="bottom-target" />
+            <Handle type="source" position={Position.Bottom} id="bottom-source" />
+            <Handle type="target" position={Position.Left} id="left-target" />
+            <Handle type="source" position={Position.Left} id="left-source" />
+            <Handle type="target" position={Position.Right} id="right-target" />
             <Handle type="source" position={Position.Right} id="right-source" />
-        </div>        
+        </div>
     );
-};
+});
 
 export default CFGNode;

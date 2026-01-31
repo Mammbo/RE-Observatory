@@ -58,13 +58,16 @@ const getLayoutedElements = async (nodes, edges, direction = 'DOWN') => {
 
     const layoutedGraph = await elk.layout(elkGraph);
 
-    const layoutedNodes = nodes.map((node) => { 
-        const elkNode = layoutedGraph.children.find((n) => n.id === node.id);
-        return { 
+    const elkNodeMap = new Map();
+    layoutedGraph.children.forEach((n) => elkNodeMap.set(n.id, n));
+
+    const layoutedNodes = nodes.map((node) => {
+        const elkNode = elkNodeMap.get(node.id);
+        return {
             ...node,
             position : { x: elkNode.x, y: elkNode.y},
-            targetPosition: direction === 'RIGHT' ? 'left' : 'top',                                                    
-            sourcePosition: direction === 'RIGHT' ? 'right' : 'bottom',   
+            targetPosition: direction === 'RIGHT' ? 'left' : 'top',
+            sourcePosition: direction === 'RIGHT' ? 'right' : 'bottom',
         };
     });
 
@@ -87,6 +90,9 @@ const CanvasView = () => {
     const entryNodeRef = useRef(null);
     const enrichedNodesRef = useRef([]);
     const rawEdgesRef = useRef([]);
+    const depthLimitRef = useRef(null);
+    const filterRootRef = useRef(null);
+    const initialLayoutDone = useRef(false);
 
     // When analysis is done and call graph exists, render and layout
     useEffect(() => {
@@ -147,6 +153,8 @@ const CanvasView = () => {
             // Compute max depth from entry node
             const computedMaxDepth = getMaxDepth(entryNodeId, rawEdges);
             setMaxDepthValue(computedMaxDepth);
+            // Use ref to skip the depth useEffect on initial load
+            depthLimitRef.current = computedMaxDepth;
             setDepthLimit(computedMaxDepth);
 
             const layoutGraph = async () => {
@@ -162,6 +170,17 @@ const CanvasView = () => {
     // Re-layout when depthLimit or filterRoot changes
     useEffect(() => {
         if (depthLimit === null || enrichedNodesRef.current.length === 0) return;
+
+        // Skip if this is the initial load — first useEffect already handled layout
+        if (!initialLayoutDone.current) {
+            initialLayoutDone.current = true;
+            return;
+        }
+
+        // Skip cascading re-triggers from setDepthLimit inside this effect
+        if (depthLimit === depthLimitRef.current && filterRoot === filterRootRef.current) return;
+        depthLimitRef.current = depthLimit;
+        filterRootRef.current = filterRoot;
 
         const rootId = filterRoot || entryNodeRef.current;
         if (!rootId) return;
@@ -188,8 +207,9 @@ const CanvasView = () => {
             );
         }
 
-        // Update depthLimit if it exceeds the new max
+        // Update depthLimit if it exceeds the new max (won't re-trigger due to ref guard)
         if (depthLimit > newMax) {
+            depthLimitRef.current = newMax;
             setDepthLimit(newMax);
         }
 
@@ -267,7 +287,7 @@ const CanvasView = () => {
                         onNodeContextMenu={onNodeContextMenu}
                         onPaneClick={onPaneClick}
                         connectionLineType={ConnectionLineType.SimpleBezier}
-                        defaultEdgeOptions={{ type: 'simplebezier' }}
+                        defaultEdgeOptions={{type: 'simplebezier' }}
                         selectionMode={SelectionMode.Partial}
                         colorMode='dark'
                         minZoom={0.1}
