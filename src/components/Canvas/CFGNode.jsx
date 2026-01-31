@@ -7,16 +7,20 @@ const CFGNode = memo(({data}) => {
     const togglePanel = useCFGNodeStore((s) => s.togglePanel);
     const isActive = useCFGNodeStore((s) => s.activePanel === data.src);
 
-    const highlightClass = isActive
-        ? 'node-selected node-layer'
-        : data.isEntry
-            ? 'node-entry'
-            : data.isMajor
-                ? 'node-major'
-                : '';
+    const highlightClass = data.isHighlighted
+        ? 'node-highlighted'
+        : isActive
+            ? 'node-selected node-layer'
+            : data.isEntry
+                ? 'node-entry'
+                : data.isMajor
+                    ? 'node-major'
+                    : '';
+
+    const dimClass = data.isDimmed ? 'node-dimmed' : '';
 
     return (
-        <div className={`node-base nodrag cursor-pointer transition-all duration-300 ease-out ${highlightClass}`} style={{ width: data.nodeWidth, height: data.nodeHeight }} onDoubleClick={() => togglePanel(data.src)}>
+        <div className={`node-base nodrag cursor-pointer transition-all duration-300 ease-out ${highlightClass} ${dimClass}`} style={{ width: data.nodeWidth, height: data.nodeHeight }} onDoubleClick={() => togglePanel(data.src)}>
             <div className="node-content">
                 <div className="node-layer node-layer-visible">
                     <div className="flex flex-col justify-between items-center w-full h-full px-2 py-2">

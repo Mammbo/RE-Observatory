@@ -12,6 +12,7 @@ import renderNodes from './nodes';
 import useAnalysisStore from '../../store/analysisStore';
 import { resolveCollisions } from './resolveCollisions';
 import { bfsFromRoot, getMaxDepth } from './bfsNode';
+import useHighlight from './useHighlight';
 import ELK from 'elkjs/lib/elk.bundled.js'
 
 
@@ -248,7 +249,12 @@ const CanvasView = () => {
             bottom: event.clientY >= pane.height - 200 ? pane.height - event.clientY : false,
         });
     }, []);
-    const onPaneClick = useCallback(() => setContextMenu(null), []);
+    const { displayNodes, displayEdges, onNodeClick, clearHighlight } = useHighlight(nodes, edges);
+
+    const onPaneClick = useCallback(() => {
+        setContextMenu(null);
+        clearHighlight();
+    }, [clearHighlight]);
     const onNodeDragStop = useCallback(() => {
         setNodes((nds) =>
             resolveCollisions(nds, {
@@ -277,13 +283,14 @@ const CanvasView = () => {
                 <ReactFlowProvider>
                     <ReactFlow
                         ref={flowRef}
-                        nodes={nodes}
-                        edges={edges}
+                        nodes={displayNodes}
+                        edges={displayEdges}
                         nodeTypes={nodeTypes}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
                         onNodeDragStop={onNodeDragStop}
+                        onNodeClick={onNodeClick}
                         onNodeContextMenu={onNodeContextMenu}
                         onPaneClick={onPaneClick}
                         connectionLineType={ConnectionLineType.SimpleBezier}
