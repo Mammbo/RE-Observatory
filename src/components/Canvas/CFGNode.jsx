@@ -15,15 +15,15 @@ const CFGNode = ({data}) => {
                 : '';
 
     return (
-        <div className={`node-base nodrag w-40 h-20 cursor-pointer transition-all duration-300 ease-out ${highlightClass}`} onClick={() => togglePanel(data.src)}> 
+        <div className={`node-base nodrag cursor-pointer transition-all duration-300 ease-out ${highlightClass}`} style={{ width: data.nodeWidth, height: data.nodeHeight }} onClick={() => togglePanel(data.src)}>
             <div className="node-content"> 
                 <div className="node-layer node-layer-visible">
-                    <div className="flex flex-col justify-center items-center w-full px-2 py-1">
-                        <span className="FuncName w-full text-center pt-1">{data.name}</span>
+                    <div className="flex flex-col justify-between items-center w-full h-full px-2 py-2">
+                        <span className="FuncName w-full text-center">{data.name}</span>
                         <div className="border-b border-node-border w-full mx-2"></div>
-                        <span className="address w-full text-center pt-1">{data.src}</span>
+                        <span className="address w-full text-center">{data.src}</span>
                         <div className="border-b border-node-border w-full mx-2"></div>
-                        <span className="type w-full text-center pt-1">{data.type}</span>
+                        <span className="type w-full text-center">{data.type}</span>
                     </div>
                 </div>
             </div>

@@ -13,9 +13,13 @@ import ELK from 'elkjs/lib/elk.bundled.js'
 // initalize ELKGraph 
 const elk = new ELK();
 
-// CFGNode dimensions: w-50 = 200px, h-25 = 100px
-const nodeWidth = 160;
-const nodeHeight = 80;
+// Node sizes
+const NODE_WIDTH = 140;
+const NODE_HEIGHT = 70;
+const MAJOR_NODE_WIDTH = 180;
+const MAJOR_NODE_HEIGHT = 90;
+const ENTRY_NODE_WIDTH = 220;
+const ENTRY_NODE_HEIGHT = 110;
 
 // layout of dagreGraph
 const getLayoutedElements = async (nodes, edges, direction = 'DOWN') => {
@@ -36,9 +40,9 @@ const getLayoutedElements = async (nodes, edges, direction = 'DOWN') => {
             'elk.layered.edgeRouting': 'ORTHOGONAL'                               
         },
         children: nodes.map((node) => ({
-            id: node.id, 
-            width: nodeWidth,
-            height: nodeHeight,
+            id: node.id,
+            width: node.data.nodeWidth,
+            height: node.data.nodeHeight,
         })),
         edges: edges.map((edge) => ({
             id: edge.id,
@@ -101,16 +105,27 @@ const CanvasView = () => {
                 || Object.entries(connectionCount).sort((a, b) => b[1] - a[1])[0]?.[0]
                 || rawNodes[0]?.id;
 
-            // Enrich nodes with highlight info
-            const enrichedNodes = rawNodes.map((node) => ({
-                ...node,
-                data: {
-                    ...node.data,
-                    isEntry: node.id === entryNodeId,
-                    isMajor: (connectionCount[node.id] || 0) >= majorThreshold,
-                    connectionCount: connectionCount[node.id] || 0,
-                },
-            }));
+            // Enrich nodes with highlight info and sizing
+            const enrichedNodes = rawNodes.map((node) => {
+                const cc = connectionCount[node.id] || 0;
+                const isEntry = node.id === entryNodeId;
+                const isMajor = cc >= majorThreshold;
+
+                const nodeW = isEntry ? ENTRY_NODE_WIDTH : isMajor ? MAJOR_NODE_WIDTH : NODE_WIDTH;
+                const nodeH = isEntry ? ENTRY_NODE_HEIGHT : isMajor ? MAJOR_NODE_HEIGHT : NODE_HEIGHT;
+
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        isEntry,
+                        isMajor,
+                        connectionCount: cc,
+                        nodeWidth: nodeW,
+                        nodeHeight: nodeH,
+                    },
+                };
+            });
 
             const layoutGraph = async () => { 
                 const { nodes: layoutedNodes, edges: layoutedEdges } = 
