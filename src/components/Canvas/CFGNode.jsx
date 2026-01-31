@@ -18,12 +18,12 @@ const CFGNode = ({data}) => {
         <div className={`node-base nodrag w-40 h-20 cursor-pointer transition-all duration-300 ease-out ${highlightClass}`} onClick={() => togglePanel(data.src)}> 
             <div className="node-content"> 
                 <div className="node-layer node-layer-visible">
-                    <div className="flex flex-col justify-center items-center ">
-                        <span className="FuncName px-2 pt-4 rounded">{data.name}</span>
-                         <div className="border-b border-node-border w-45"></div>
-                        <span className="address px-2 pt-4 rounded">{data.src}</span>
-                        <div className="border-b border-node-border w-45"></div>
-                        <span className="type px-2 pt-1 rounded">{data.type}</span>
+                    <div className="flex flex-col justify-center items-center w-full px-2 py-1">
+                        <span className="FuncName w-full text-center pt-1">{data.name}</span>
+                        <div className="border-b border-node-border w-full mx-2"></div>
+                        <span className="address w-full text-center pt-1">{data.src}</span>
+                        <div className="border-b border-node-border w-full mx-2"></div>
+                        <span className="type w-full text-center pt-1">{data.type}</span>
                     </div>
                 </div>
             </div>

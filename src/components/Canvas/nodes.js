@@ -4,7 +4,7 @@ const renderNodes = (callGraph) => {
     return Object.entries(callGraph.nodes).map(([addr, info]) => ({
         id: addr,
         type: 'CFG',
-        data: { src: addr, type: info.type },
+        data: { src: addr, name: info.name, type: info.type },
         deletable: false,
     }));
 }
