@@ -8,7 +8,7 @@ import renderEdges from './edges';
 import renderNodes from './nodes';
 import useAnalysisStore from '../../store/analysisStore';
 import ELK from 'elkjs/lib/elk.bundled.js'
-import { m } from 'framer-motion';
+
 
 // initalize ELKGraph 
 const elk = new ELK();
@@ -91,15 +91,22 @@ const CanvasView = () => {
             const sortedCounts = [...counts].sort((a, b) => b - a);
             const majorThreshold = sortedCounts[Math.floor(sortedCounts.length * 0.1)] || 1;
 
-            // Get entrypoint address
-            const entrypoint = analysisData?.programInfo?.meta?.entrypoint;
+            // Find entry node: LIEF address → named entry/main/_start → most connected
+            const liefEntry = analysisData?.programInfo?.meta?.entrypoint;
+            const entryNodeId =
+                rawNodes.find(n => n.id === liefEntry)?.id
+                || rawNodes.find(n => n.data.name === 'entry')?.id
+                || rawNodes.find(n => n.data.name === 'main')?.id
+                || rawNodes.find(n => n.data.name === '_start')?.id
+                || Object.entries(connectionCount).sort((a, b) => b[1] - a[1])[0]?.[0]
+                || rawNodes[0]?.id;
 
             // Enrich nodes with highlight info
             const enrichedNodes = rawNodes.map((node) => ({
                 ...node,
                 data: {
                     ...node.data,
-                    isEntry: node.id === entrypoint,
+                    isEntry: node.id === entryNodeId,
                     isMajor: (connectionCount[node.id] || 0) >= majorThreshold,
                     connectionCount: connectionCount[node.id] || 0,
                 },
