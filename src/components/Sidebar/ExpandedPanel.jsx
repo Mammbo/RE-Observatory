@@ -29,7 +29,7 @@ const ExpandedPanel = ({activePanel, width, children}) => {
     if (!shouldRender) return null;
     return (
         <div className={`fixed top-0 left-16 h-screen bg-primary flex
-                          origin-left transition-transform duration-300 ease-in-out
+                          origin-left transition-transform duration-300 ease-linear
                           ${isVisible
                               ? 'scale-x-100'
                               : 'scale-x-0'

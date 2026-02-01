@@ -25,6 +25,12 @@ contextBridge.exposeInMainWorld('electron', {
     });
   },
 
+  // Terminal: send user keystrokes to pty, listen for pty output
+  terminalWrite: (data) => ipcRenderer.send('terminal.toterm', data),
+  onTerminalData: (callback) => {
+    ipcRenderer.on('terminal.incData', (event, data) => callback(data));
+  },
+
   // Listen for connection status changes
   onConnectionStatus: (callback) => {
     ipcRenderer.on('ws-status', (event, status) => callback(status));

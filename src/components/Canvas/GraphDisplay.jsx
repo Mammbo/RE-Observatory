@@ -316,7 +316,7 @@ const CanvasView = () => {
         [nodes, edges],
     );
     return (
-            <div className='w-full h-full relative'>
+            <div className='w-full h-90% relative'>
                 {/* Title fixed to viewport center, never shifts */}
                 <div className="fixed top-4 left-1/2 -translate-x-1/2 z-5 pointer-events-none">
                     <h1 className="text-2xl font-bold tracking-wide text-accent drop-shadow-lg">

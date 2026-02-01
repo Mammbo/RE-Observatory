@@ -2,16 +2,26 @@ const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
 const pythonManager = require('./python-manager');
 const wsClient = require('./websocket-client');
-const { send } = require('process');
+const os = require("os");
+const pty = require("node-pty")
+
+// inline if statement
+try { 
+  var shell = os.platform() === "win32" ? "powershell.exe" : process.env.SHELL;
+  console.log(`SHELL: ${shell}`)
+} catch { 
+  console.log("error")
+}
 
 let mainWindow;
+let ptyProcess;
 
 const createWindow= () => {
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
     webPreferences: {
-      nodeIntegration: false,
+      nodeIntegration: true,
       contextIsolation: true,
       preload: path.join(__dirname, 'preload.js')
     },
@@ -36,6 +46,24 @@ const createWindow= () => {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
+  // spawn pty and forward output to renderer
+  try {
+    ptyProcess = pty.spawn(shell, [], {
+      name: "xterm-color",
+      cols: 80,
+      rows: 24,
+      cwd: process.env.HOME,
+      env: process.env
+    });
+    console.log('✓ PTY spawned successfully');
+  } catch (e) {
+    console.error('✗ PTY spawn failed:', e.message);
+  }
+
+  ptyProcess.on("data", function(data) {
+      mainWindow.webContents.send("terminal.incData", data);
+  })
 }
 
 //setUp IPC handlers
@@ -60,6 +88,11 @@ const setupIPC = () => {
 
   ipcMain.on('ws-send-async', (event, command, data) => {
     wsClient.send(command, data)
+  });
+
+  // writes data
+  ipcMain.on("terminal.toterm", (event, data) => {
+    if (ptyProcess) ptyProcess.write(data)
   });
 
   wsClient.on('message', (message) => { 

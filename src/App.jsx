@@ -7,6 +7,9 @@ import useAnalysisStore from './store/analysisStore';
 import CanvasView from './components/Canvas/GraphDisplay';
 import NodePanel from './components/Canvas/nodePanels';
 import UploadBinaryPage from './components/Layout/UploadBinaryPage';
+import ToggleMainViews from './components/Layout/ToggleMainViews';
+import TerminalComponent from './components/Layout/terminal';
+
 function App() {
   const {
     analysisData,
@@ -18,6 +21,7 @@ function App() {
   } = useAnalysis();
 
   const [binaryPath, setBinaryPath] = useState(null);
+  const [activeView, setActiveView] = useState('canvas');
 
   const {activePanel, panelWidth, isResizing: isSidebarResizing} = useSideBarStore();
   const { activePanel: nodePanel, panelWidth: nodePanelWidth, isResizing } = useCFGNodeStore();
@@ -64,7 +68,7 @@ function App() {
       <SideBar />
       {/* Main content area - offset by sidebar width */}
       <> 
-        <div className="relative flex-1 h-screen overflow-hidden">
+        <div className={`relative flex-1 h-screen overflow-hidden`}>
               {/* Upload Page */}
               <div
                 className={`
@@ -77,13 +81,26 @@ function App() {
                 <UploadBinaryPage onSelectBinary={handleSelectBinary} />
               </div>
 
-              {/* Main App */}
+              {/* Main App - Title + Toggle */}
+              <div
+                className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 transition-all duration-500 ease-out
+                  ${binaryPath
+                    ? 'opacity-100 translate-y-0 pointer-events-auto'
+                    : 'opacity-0 -translate-y-4 pointer-events-none'}`}
+              >
+                <h1 className="text-2xl font-bold tracking-wide text-accent drop-shadow-lg pointer-events-none">
+                    Reverse Engineering Observatory
+                </h1>
+                <ToggleMainViews activeView={activeView} onToggle={setActiveView} />
+              </div>
+
+              {/* Canvas View */}
               <div
                 className={`
                   absolute inset-0 transition-all duration-500 ease-out
-                  ${binaryPath
+                  ${binaryPath && activeView === 'canvas'
                     ? 'opacity-100 translate-y-0 scale-100 blur-0 z-10 pointer-events-auto'
-                    : 'opacity-0 translate-y-4 sclae-95 blur-sm z-0 pointer-events-none'}
+                    : 'opacity-0 translate-y-4 scale-95 blur-sm z-0 pointer-events-none'}
                 `}
               >
                 <main
@@ -95,9 +112,25 @@ function App() {
                 >
                   <CanvasView />
                 </main>
-
                 <NodePanel />
               </div>
+
+              {/* Terminal View */}
+              {binaryPath && activeView === 'terminal' && (
+                <div
+                  className={`absolute inset-0 bg-primary ${activeView === 'terminal' && binaryPath ? 'z-10 visible' : 'z-0 invisible'}`}
+                  style={{ WebkitAppRegion: 'no-drag' }}
+                >
+                  <div
+                    className={`h-full pt-24 ${!isSidebarResizing ? 'transition-[margin] duration-300 ease-in-out' : ''}`}
+                    style={{
+                      marginLeft: `${64 + (activePanel ? panelWidth : 0)}px`,
+                    }}
+                  >
+                    <TerminalComponent />
+                  </div>
+                </div>
+              )}
             </div>
           </>
     </div>
