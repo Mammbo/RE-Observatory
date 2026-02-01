@@ -55,6 +55,12 @@ const useGraphStore = create((set, get) => ({
         edges: state.edges.filter((e) => e.source !== id && e.target !== id),
         userEdges: state.userEdges.filter((e) => e.source !== id && e.target !== id),
     })),
+    updateUserNodeData: (id, dataUpdate) => set((state) => {
+        const update = (list) => list.map((n) =>
+            n.id === id ? { ...n, data: { ...n.data, ...dataUpdate } } : n
+        );
+        return { userNodes: update(state.userNodes), nodes: update(state.nodes) };
+    }),
 
     // Actions — depth filter
     setDepthLimit: (n) => set({ depthLimit: n }),

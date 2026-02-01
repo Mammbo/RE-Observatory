@@ -1,21 +1,19 @@
-import { useState, useRef, useEffect, memo } from "react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 import { Handle, Position } from "@xyflow/react";
 import ReactMarkdown from "react-markdown";
+import useGraphStore from "../../store/graphStore";
 
-const NoteNode = ({ data }) => {
-  const [markdown, setMarkdown] = useState(
-    data?.content ||
-      `# Welcome to Notes
-
-Type **Markdown** here and see it render instantly.
-
-- Supports lists
-- Bold and *italic*
-- \`code blocks\`
-- And more!`
-  );
+const NoteNode = ({ id, data }) => {
+  const content = data?.content ?? '';
+  const [draft, setDraft] = useState(content);
   const [isEditing, setIsEditing] = useState(false);
   const textareaRef = useRef(null);
+  const updateUserNodeData = useGraphStore((s) => s.updateUserNodeData);
+
+  // Sync draft when store content changes externally
+  useEffect(() => {
+    if (!isEditing) setDraft(content);
+  }, [content, isEditing]);
 
   useEffect(() => {
     if (isEditing && textareaRef.current) {
@@ -23,6 +21,11 @@ Type **Markdown** here and see it render instantly.
       textareaRef.current.selectionStart = textareaRef.current.value.length;
     }
   }, [isEditing]);
+
+  const handleBlur = useCallback(() => {
+    setIsEditing(false);
+    updateUserNodeData(id, { content: draft });
+  }, [id, draft, updateUserNodeData]);
 
   return (
     <div className="node-base nowheel w-75 h-75">
@@ -61,16 +64,16 @@ Type **Markdown** here and see it render instantly.
               hr: ({ node, ...props }) => <hr className="md-hr" {...props} />,
             }}
           >
-            {markdown}
+            {draft || '*Click to start writing...*'}
           </ReactMarkdown>
         </div>
 
         {/* Editor Layer */}
         <textarea
           ref={textareaRef}
-          value={markdown}
-          onChange={(e) => setMarkdown(e.target.value)}
-          onBlur={() => setIsEditing(false)}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={handleBlur}
           placeholder="Write Markdown here..."
           className={`node-layer note-editor node-scrollbar
             ${isEditing ? "node-layer-visible" : "node-layer-hidden-down"}`}
