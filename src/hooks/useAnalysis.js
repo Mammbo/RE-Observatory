@@ -41,25 +41,22 @@ export function useAnalysis() {
                     }
                     break;
                 case 'functions':
-                    setAnalysisData(prev => {
-                        const next = {
+                    setAnalysisData(prev => ({
                         ...prev,
                         functions: message.payload.functions
-                        };
-                        // If we have at least one function, auto-request decompile + CFG for the first 
-                        // do this for each function and store it
-                        const first = message.payload.functions?.[0];
-                        if (first?.address) {
-                            window.electron.sendAsync('decompile_function', { address: first.address });
-                            window.electron.sendAsync('get_cfg', { address: first.address });
-                        }
-                        return next;
-                    });
+                    }));
+                    // Request decompile + CFG for each function
+                    if (Array.isArray(message.payload?.functions)) {
+                        message.payload.functions.forEach(fn => {
+                            window.electron.sendAsync('decompile_function', { address: fn.address });
+                            window.electron.sendAsync('get_cfg', { address: fn.address });
+                        });
+                    }
                     break;
                 case 'decompiled':
                     setAnalysisData(prev => ({
                         ...prev,
-                        decompiled: message.payload
+                        decompiled: { ...prev?.decompiled, [message.payload.address]: message.payload.code }
                     }));
                     break;
                 case 'program_info':
@@ -77,7 +74,7 @@ export function useAnalysis() {
                 case 'cfg':
                     setAnalysisData(prev => ({
                         ...prev,
-                        cfg: message.payload
+                        cfgs: { ...prev?.cfgs, [message.payload.address]: message.payload.cfg }
                     }));
                     break;
                 case 'analysis_started':

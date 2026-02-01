@@ -59,22 +59,6 @@ function App() {
   }, [binaryPath]);
 
 
-  // REGISTER NODE PANEL
-  const { registerPanel } = useCFGNodeStore();
-
-  // register panel will be for the length of the call graph.
-  useEffect(() => {
-      // Register test data - address must match data.src in GraphDisplay.jsx
-      registerPanel("0x4010000", {
-          functionName: "main",
-          cCode: "int main() { return 0; }"
-      });
-      registerPanel("0x4010014", { 
-        functionName: "fgets",
-        ccode: "lebron"
-      })
-  }, []);
-  
   return (
     <div className="flex h-screen bg-primary">
       <SideBar />
@@ -121,18 +105,3 @@ function App() {
 };
 
 export default App;
-/*
- <div className="p-4 text-sm text-gray-200 space-y-2">
-                <div>Status: {isConnected ? 'connected' : 'disconnected'} {isLoading && '(analyzing...)'}</div>
-                <div>Binary: {binaryPath}</div>
-                {error && <div className="text-red-400">Error: {error}</div>}
-                <div className="bg-gray-900/60 rounded p-2 h-40 overflow-auto">
-                  <div className="font-semibold mb-1">Backend messages (latest first)</div>
-                  {[...messages].reverse().slice(0,20).map((m, i) => (
-                    <div key={i} className="text-xs text-gray-300 whitespace-pre-wrap">
-                      {m.type}: {JSON.stringify(m.payload).slice(0, 160)}
-                    </div>
-                  ))}
-                </div>
-              </div>
-*/

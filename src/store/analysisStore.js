@@ -19,6 +19,16 @@ const useAnalysisStore = create((set) => ({
         const state = useAnalysisStore.getState();
         return state.analysisData?.programInfo?.meta?.security || null;
     },
+
+    getDecompiled: (address) => {
+        const state = useAnalysisStore.getState();
+        return state.analysisData?.decompiled?.[address] || null;
+    },
+
+    getCFG: (address) => {
+        const state = useAnalysisStore.getState();
+        return state.analysisData?.cfgs?.[address] || null;
+    },
 }));
 
 export default useAnalysisStore;

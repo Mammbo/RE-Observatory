@@ -11,6 +11,7 @@ import renderEdges from './edges';
 import renderNodes from './nodes';
 import useAnalysisStore from '../../store/analysisStore';
 import useGraphStore from '../../store/graphStore';
+import { useCFGNodeStore } from '../../store/cfgNodeStore';
 import { resolveCollisions } from './resolveCollisions';
 import { bfsFromRoot, getMaxDepth } from './bfsNode';
 import useHighlight from './useHighlight';
@@ -153,6 +154,18 @@ const CanvasView = () => {
             // Store enriched data for depth filtering later
             setEnrichedNodes(enrichedNodes);
             setRawEdges(rawEdges);
+
+            // Register panels for all nodes so the side panel can open on double-click
+            const { registerPanel } = useCFGNodeStore.getState();
+            enrichedNodes.forEach((node) => {
+                registerPanel(node.data.src, {
+                    name: node.data.name,
+                    type: node.data.type,
+                    isEntry: node.data.isEntry,
+                    isMajor: node.data.isMajor,
+                    connectionCount: node.data.connectionCount,
+                });
+            });
 
             // Compute max depth from entry node
             const computedMaxDepth = getMaxDepth(entryNodeId, rawEdges);
