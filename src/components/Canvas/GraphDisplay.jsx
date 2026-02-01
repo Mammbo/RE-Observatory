@@ -10,6 +10,7 @@ import DepthSlider from './DepthSlider';
 import renderEdges from './edges';
 import renderNodes from './nodes';
 import useAnalysisStore from '../../store/analysisStore';
+import useGraphStore from '../../store/graphStore';
 import { resolveCollisions } from './resolveCollisions';
 import { bfsFromRoot, getMaxDepth } from './bfsNode';
 import useHighlight from './useHighlight';
@@ -47,8 +48,8 @@ const getLayoutedElements = async (nodes, edges, direction = 'DOWN') => {
         },
         children: nodes.map((node) => ({
             id: node.id,
-            width: node.data.nodeWidth,
-            height: node.data.nodeHeight,
+            width: node.data?.nodeWidth ?? NODE_WIDTH,
+            height: node.data?.nodeHeight ?? NODE_HEIGHT,
         })),
         edges: edges.map((edge) => ({
             id: edge.id,
@@ -83,14 +84,16 @@ const nodeTypes = {
 
 const CanvasView = () => {
     const { isLoading, analysisData } = useAnalysisStore();
-    const [nodes, setNodes] = useState([]);
-    const [edges, setEdges] = useState([]);
-    const [depthLimit, setDepthLimit] = useState(null);
-    const [maxDepthValue, setMaxDepthValue] = useState(1);
-    const [filterRoot, setFilterRoot] = useState(null);
-    const entryNodeRef = useRef(null);
-    const enrichedNodesRef = useRef([]);
-    const rawEdgesRef = useRef([]);
+    const nodes = useGraphStore((s) => s.nodes);
+    const edges = useGraphStore((s) => s.edges);
+    const depthLimit = useGraphStore((s) => s.depthLimit);
+    const maxDepthValue = useGraphStore((s) => s.maxDepthValue);
+    const filterRoot = useGraphStore((s) => s.filterRoot);
+    const {
+        setNodes, setEdges, setEnrichedNodes, setRawEdges,
+        setEntryNodeId, setDepthLimit, setMaxDepthValue, setFilterRoot,
+        setLayoutedGraph,
+    } = useGraphStore();
     const depthLimitRef = useRef(null);
     const filterRootRef = useRef(null);
     const initialLayoutDone = useRef(false);
@@ -123,7 +126,7 @@ const CanvasView = () => {
                 || Object.entries(connectionCount).sort((a, b) => b[1] - a[1])[0]?.[0]
                 || rawNodes[0]?.id;
 
-            entryNodeRef.current = entryNodeId;
+            setEntryNodeId(entryNodeId);
 
             // Enrich nodes with highlight info and sizing
             const enrichedNodes = rawNodes.map((node) => {
@@ -148,8 +151,8 @@ const CanvasView = () => {
             });
 
             // Store enriched data for depth filtering later
-            enrichedNodesRef.current = enrichedNodes;
-            rawEdgesRef.current = rawEdges;
+            setEnrichedNodes(enrichedNodes);
+            setRawEdges(rawEdges);
 
             // Compute max depth from entry node
             const computedMaxDepth = getMaxDepth(entryNodeId, rawEdges);
@@ -160,9 +163,9 @@ const CanvasView = () => {
 
             const layoutGraph = async () => {
                 const { nodes: layoutedNodes, edges: layoutedEdges } =
-                await getLayoutedElements(enrichedNodes, rawEdges);
-            setNodes(layoutedNodes);
-            setEdges(layoutedEdges);
+                    await getLayoutedElements(enrichedNodes, rawEdges);
+                const { userNodes, userEdges } = useGraphStore.getState();
+                setLayoutedGraph([...layoutedNodes, ...userNodes], [...layoutedEdges, ...userEdges]);
             }
             layoutGraph();
         }
@@ -170,7 +173,8 @@ const CanvasView = () => {
 
     // Re-layout when depthLimit or filterRoot changes
     useEffect(() => {
-        if (depthLimit === null || enrichedNodesRef.current.length === 0) return;
+        const { enrichedNodes, rawEdges, entryNodeId } = useGraphStore.getState();
+        if (depthLimit === null || enrichedNodes.length === 0) return;
 
         // Skip if this is the initial load — first useEffect already handled layout
         if (!initialLayoutDone.current) {
@@ -183,11 +187,11 @@ const CanvasView = () => {
         depthLimitRef.current = depthLimit;
         filterRootRef.current = filterRoot;
 
-        const rootId = filterRoot || entryNodeRef.current;
+        const rootId = filterRoot || entryNodeId;
         if (!rootId) return;
 
         // Recompute max depth from the current root first
-        const newMax = getMaxDepth(rootId, rawEdgesRef.current);
+        const newMax = getMaxDepth(rootId, rawEdges);
         setMaxDepthValue(newMax);
 
         // Clamp depthLimit to the new max so the slider and BFS stay in sync
@@ -198,12 +202,12 @@ const CanvasView = () => {
 
         if (isDefaultView) {
             // Show entire graph including disconnected nodes
-            filteredNodes = enrichedNodesRef.current;
-            filteredEdges = rawEdgesRef.current;
+            filteredNodes = enrichedNodes;
+            filteredEdges = rawEdges;
         } else {
-            const visibleIds = bfsFromRoot(rootId, rawEdgesRef.current, effectiveDepth);
-            filteredNodes = enrichedNodesRef.current.filter((n) => visibleIds.has(n.id));
-            filteredEdges = rawEdgesRef.current.filter(
+            const visibleIds = bfsFromRoot(rootId, rawEdges, effectiveDepth);
+            filteredNodes = enrichedNodes.filter((n) => visibleIds.has(n.id));
+            filteredEdges = rawEdges.filter(
                 (e) => visibleIds.has(e.source) && visibleIds.has(e.target)
             );
         }
@@ -214,11 +218,27 @@ const CanvasView = () => {
             setDepthLimit(newMax);
         }
 
+        // Include user-created note nodes and edges that connect to visible CFG nodes
+        const { userNodes, userEdges } = useGraphStore.getState();
+        const visibleCfgIds = new Set(filteredNodes.map((n) => n.id));
+        const visibleNoteNodes = userNodes.filter((n) => {
+            // Keep note if it has a user edge connecting to a visible CFG node
+            return userEdges.some(
+                (e) => (e.source === n.id && visibleCfgIds.has(e.target))
+                    || (e.target === n.id && visibleCfgIds.has(e.source))
+            );
+        });
+        const allNodes = [...filteredNodes, ...visibleNoteNodes];
+        const allNodeIds = new Set(allNodes.map((n) => n.id));
+        const visibleUserEdges = userEdges.filter(
+            (e) => allNodeIds.has(e.source) && allNodeIds.has(e.target)
+        );
+        const allEdges = [...filteredEdges, ...visibleUserEdges];
+
         const layoutGraph = async () => {
             const { nodes: layoutedNodes, edges: layoutedEdges } =
-                await getLayoutedElements(filteredNodes, filteredEdges);
-            setNodes(layoutedNodes);
-            setEdges(layoutedEdges);
+                await getLayoutedElements(allNodes, allEdges);
+            setLayoutedGraph(layoutedNodes, layoutedEdges);
         };
         layoutGraph();
     }, [depthLimit, filterRoot]);
@@ -231,9 +251,13 @@ const CanvasView = () => {
         (changes) => setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot)),
         [],
     );
+    const addUserEdge = useGraphStore((s) => s.addUserEdge);
     const onConnect = useCallback(
-        (params) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
-        [],
+        (params) => {
+            const edge = { ...params, id: `user-e-${params.source}-${params.target}-${Date.now()}` };
+            addUserEdge(edge);
+        },
+        [addUserEdge],
     );
     const [contextMenu, setContextMenu] = useState(null);
     const flowRef = useRef(null);
@@ -266,9 +290,15 @@ const CanvasView = () => {
     }, [setNodes]);
     const onLayout = useCallback(
         async (direction) => {
-            const { nodes: layoutedNodes, edges: layoutedEdges } =  await getLayoutedElements(nodes, edges, direction);
-            setNodes([...layoutedNodes]);
-            setEdges([...layoutedEdges]);
+            const { nodes: layoutedNodes, edges: layoutedEdges } = await getLayoutedElements(nodes, edges, direction);
+            setLayoutedGraph([...layoutedNodes], [...layoutedEdges]);
+            setNodes((nds) =>
+                resolveCollisions(nds, {
+                    maxIterations: Infinity,
+                    overlapThreshold: 0.5,
+                    margin: 15,
+                }),
+            );
         },
         [nodes, edges],
     );
@@ -307,8 +337,9 @@ const CanvasView = () => {
                                 maxDepthValue={maxDepthValue}
                                 onDepthChange={setDepthLimit}
                                 onReset={() => {
+                                    const { entryNodeId, rawEdges } = useGraphStore.getState();
                                     setFilterRoot(null);
-                                    const max = getMaxDepth(entryNodeRef.current, rawEdgesRef.current);
+                                    const max = getMaxDepth(entryNodeId, rawEdges);
                                     setMaxDepthValue(max);
                                     setDepthLimit(max);
                                 }}

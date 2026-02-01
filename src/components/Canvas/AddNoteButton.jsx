@@ -1,12 +1,13 @@
-import { ControlButton, useReactFlow } from '@xyflow/react';
+import { ControlButton } from '@xyflow/react';
 import { FiPlus } from 'react-icons/fi';
+import useGraphStore from '../../store/graphStore';
 
 const AddNodeButton = () => {
-    const reactFlow = useReactFlow();
+    const addUserNode = useGraphStore((s) => s.addUserNode);
 
     const handleAddNode = () => {
-        reactFlow.addNodes({
-            id: `node-${Date.now()}`,
+        addUserNode({
+            id: `note-${Date.now()}`,
             type: 'note',
             position: { x: 100, y: 100 },
             data: { label: 'New Note' },
