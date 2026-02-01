@@ -62,6 +62,26 @@ function App() {
     }
   }, [binaryPath]);
 
+  // send query to save all data to the backend 
+  useEffect(() => {
+    if(!analysisData) return;
+    const { functions, decompiled, cfgs, callGraph, programInfo } = analysisData;
+    if (!functions || !callGraph || !programInfo) return;
+
+    // find total length of functions
+    const total = functions.length;
+    const decompiledCount = decompiled ? Object.keys(decompiled).length : 0;
+    const cfgCount = cfgs ? Object.keys(cfgs).length : 0;
+
+    console.log(`Store progress: decompiled=${decompiledCount}/${total}, cfgs=${cfgCount}/${total}`);
+
+    // check if decompiled and cfg count = funcs
+    if ( decompiledCount >= total && cfgCount >= total ) {
+      console.log('All data ready, sending to backend for DB save');
+      window.electron.sendAsync('analysis_store_ready', analysisData)
+    }
+  }, [analysisData])
+
 
   return (
     <div className="flex h-screen bg-primary">
@@ -115,10 +135,12 @@ function App() {
                 <NodePanel />
               </div>
 
-              {/* Terminal View */}
-              {binaryPath && activeView === 'terminal' && (
                 <div
-                  className={`absolute inset-0 bg-primary ${activeView === 'terminal' && binaryPath ? 'z-10 visible' : 'z-0 invisible'}`}
+                  className={`absolute inset-0 bg-primary transition-all duration-500 ease-out
+                    ${activeView === 'terminal' && binaryPath
+                      ? 'opacity-100 translate-y-0 scale-100 blur-0 z-10 pointer-events-auto'
+                      : 'opacity-0 translate-y-4 scale-95 blur-sm z-0 pointer-events-none'}`
+                    }
                   style={{ WebkitAppRegion: 'no-drag' }}
                 >
                   <div
@@ -130,7 +152,6 @@ function App() {
                     <TerminalComponent />
                   </div>
                 </div>
-              )}
             </div>
           </>
     </div>

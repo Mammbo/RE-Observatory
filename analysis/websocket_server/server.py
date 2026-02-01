@@ -11,6 +11,7 @@ import jpype
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from analysis.shared.analyzers.ghidra_manager import GhidraManager
 from analysis.shared.analyzers.analysis_manager import AnalysisManager
+from analysis.shared.database.db_manager import DBManager
 
 
 class AnalysisWebSocketServer:
@@ -24,6 +25,7 @@ class AnalysisWebSocketServer:
         self.analysis_task = None
         self.binary_path = None
         self.client = None
+        self.db = None
 
     # -----------------------------
     # Utility Methods
@@ -167,6 +169,17 @@ class AnalysisWebSocketServer:
         except Exception as e:
             await self.error(websocket, f"Decompilation failed: {e}")
 
+    #database handler
+    async def handle_store_ready(self, websocket, data):
+        try:
+            binary_id = self.db.save_analysis(data)
+            await self.send(websocket, "analysis_saved", {"binary_id": binary_id})
+            print(f"Analysis saved to DB with binary_id={binary_id}")
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            await self.error(websocket, f"Failed to save analysis: {e}")
+
     # -----------------------------
     # Graph Handlers
     # -----------------------------
@@ -255,6 +268,9 @@ class AnalysisWebSocketServer:
 
                 elif command == "get_call_graph":
                     await self.handle_get_call_graph(websocket)
+                
+                elif command == "analysis_store_ready": 
+                    await self.handle_store_ready(websocket, data)
 
                 # Unknown command
                 else:
@@ -291,6 +307,8 @@ class AnalysisWebSocketServer:
             raise RuntimeError("GHIDRA_INSTALL_DIR not set")
         print(f"Initializing Ghidra from {ghidra_install}...")
         self.ghidra_manager = GhidraManager(ghidra_install)
+        self.db = DBManager()
+        print("Database initialized")
 
         print(f"Starting WebSocket server on {self.host}:{self.port}")
         async with websockets.serve(self.handler, self.host, self.port):
@@ -303,6 +321,9 @@ def main():
     try:
         asyncio.run(server.start())
     except KeyboardInterrupt:
+        if server.db:
+            server.db.close()
+            print("Database connection closed")
         print("\nServer stopped")
 
 
