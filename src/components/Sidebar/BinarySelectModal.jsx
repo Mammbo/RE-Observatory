@@ -31,8 +31,8 @@ const BinarySelectModal = ({ onClose, onUploadNew }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
-            <div className="bg-secondary border border-border-default rounded-lg shadow-2xl w-[500px] max-h-[70vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onClose}>
+            <div className="bg-secondary border border-border-default rounded-lg shadow-2xl w-125 max-h-[70vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-border-default">
                     <h2 className="text-lg font-semibold text-text-primary">Open Binary</h2>
@@ -73,7 +73,7 @@ const BinarySelectModal = ({ onClose, onUploadNew }) => {
                                         <span className="text-xs text-text-secondary">{bin.format}</span>
                                     </div>
                                     <div className="flex items-center justify-between mt-1">
-                                        <span className="text-xs text-text-secondary truncate max-w-[280px]">{bin.filepath}</span>
+                                        <span className="text-xs text-text-secondary truncate max-w-70">{bin.filepath}</span>
                                         <span className="text-xs text-text-secondary">{bin.architecture}</span>
                                     </div>
                                     {bin.created_at && (

@@ -44,26 +44,37 @@ class PythonManager {
         return path.join(__dirname, '..', 'venv', 'bin', 'python');
     }
 
-    /** 
-     * Spawn the Python server process 
+    getGhidraPath() {
+        // Allow override via environment variable
+        if (process.env.GHIDRA_INSTALL_DIR) {
+            return process.env.GHIDRA_INSTALL_DIR;
+        }
+
+        // Packaged app: bundled in resources
+        if (app.isPackaged) {
+            return path.join(process.resourcesPath, 'ghidra_12.0.2_PUBLIC');
+        }
+
+        // Development: vendor directory in project root
+        return path.join(__dirname, '..', 'vendor', 'ghidra_12.0.2_PUBLIC');
+    }
+
+    /**
+     * Spawn the Python server process
      */
 
-    async start() { 
-        if (this.isRunning) { 
+    async start() {
+        if (this.isRunning) {
             console.log("Python process is already running");
             return;
         }
 
-        const pythonPath = this.getPythonPath(); 
+        const pythonPath = this.getPythonPath();
         const scriptPath = this.getScriptPath();
-        const ghidraInstall = process.env.GHIDRA_INSTALL_DIR;
-
-        if (!ghidraInstall) {
-            throw new Error("GHIDRA_INSTALL_DIR not set. Please point it to your Ghidra install.");
-        }
+        const ghidraInstall = this.getGhidraPath();
 
         if (!fs.existsSync(ghidraInstall)) {
-            throw new Error(`GHIDRA_INSTALL_DIR is invalid: ${ghidraInstall}`);
+            throw new Error(`Ghidra not found at: ${ghidraInstall}. Place Ghidra in vendor/ghidra_12.0.2_PUBLIC or set GHIDRA_INSTALL_DIR.`);
         }
 
         console.log(`Starting Python server: ${pythonPath}:${scriptPath}`);

@@ -5,6 +5,7 @@ const pythonManager = require('./python-manager');
 const wsClient = require('./websocket-client');
 const os = require("os");
 const pty = require("node-pty")
+require('dotenv').config(); 
 
 // inline if statement
 try { 

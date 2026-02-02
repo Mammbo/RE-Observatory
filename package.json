@@ -7,13 +7,14 @@
     "doc": "docs"
   },
   "scripts": {
-    "start": "electron .",
+    "start": "electron-forge start",
     "dev": "webpack serve --mode development",
     "dev:electron": "NODE_ENV=development concurrently \"npm run dev\" \"wait-on http://localhost:8080 && electron .\"",
     "build": "webpack --mode production",
-    "build:linux": "electron-builder --linux",
-    "build:mac": "electron-builder --mac",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:all": "npm run build && npm run make",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "repository": {
     "type": "git",
@@ -30,11 +31,18 @@
     "@babel/core": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
     "@babel/preset-react": "^7.28.5",
+    "@electron-forge/cli": "^7.11.1",
+    "@electron-forge/maker-deb": "^7.11.1",
+    "@electron-forge/maker-rpm": "^7.11.1",
+    "@electron-forge/maker-squirrel": "^7.11.1",
+    "@electron-forge/maker-zip": "^7.11.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.11.1",
+    "@electron-forge/plugin-fuses": "^7.11.1",
+    "@electron/fuses": "^1.8.0",
     "babel-loader": "^10.0.0",
     "concurrently": "^9.2.1",
     "css-loader": "^7.1.2",
     "electron": "^39.2.7",
-    "electron-builder": "^23.0.6",
     "html-webpack-plugin": "^5.6.5",
     "postcss-loader": "^8.2.0",
     "style-loader": "^4.0.0",
@@ -57,6 +65,8 @@
     "cytoscape": "^3.33.1",
     "cytoscape-dagre": "^2.5.0",
     "dagre": "^0.8.5",
+    "dotenv": "^17.2.3",
+    "electron-squirrel-startup": "^1.0.1",
     "elkjs": "^0.11.0",
     "framer-motion": "^12.29.2",
     "fuse.js": "^7.1.0",
@@ -71,17 +81,5 @@
     "tailwindcss": "^4.1.18",
     "xterm": "^5.3.0",
     "zustand": "^5.0.9"
-  },
-  "build": {
-    "extraResources": [
-      {
-        "from": "venv",
-        "to": "venv"
-      },
-      {
-        "from": "analysis",
-        "to": "analysis"
-      }
-    ]
   }
 }
