@@ -55,6 +55,12 @@ const useGraphStore = create((set, get) => ({
         edges: state.edges.filter((e) => e.source !== id && e.target !== id),
         userEdges: state.userEdges.filter((e) => e.source !== id && e.target !== id),
     })),
+    clearUserGraph: () => set((state) => ({
+        userNodes: [],
+        userEdges: [],
+        nodes: state.nodes.filter((n) => !state.userNodes.some((un) => un.id === n.id)),
+        edges: state.edges.filter((e) => !state.userEdges.some((ue) => ue.id === e.id)),
+    })),
     updateUserNodeData: (id, dataUpdate) => set((state) => {
         const update = (list) => list.map((n) =>
             n.id === id ? { ...n, data: { ...n.data, ...dataUpdate } } : n

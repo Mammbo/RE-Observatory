@@ -77,6 +77,10 @@ export function useAnalysis() {
                         cfgs: { ...prev?.cfgs, [message.payload.address]: message.payload.cfg }
                     }));
                     break;
+                case 'binary_loaded':
+                    setAnalysisData(message.payload);
+                    setIsLoading(false);
+                    break;
                 case 'analysis_started':
                 case 'analysis_parsed':
                 case 'analysis_loading':
@@ -106,6 +110,7 @@ export function useAnalysis() {
 
     // Analyze a binary file
     const analyzeBinary = useCallback(async (binaryPath) => {
+        setAnalysisData(null);
         setIsLoading(true);
         setError(null);
 

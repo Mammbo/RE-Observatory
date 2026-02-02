@@ -241,14 +241,48 @@ class DBManager:
                 cfgs[addr] = {"nodes": [], "edges": []}
             cfgs[addr]["edges"].append({"src": r["src"], "dst": r["dst"], "type": r["type"]})
 
+        # user nodes & edges
+        user_node_rows = cur.execute("SELECT * FROM user_nodes WHERE binary_id = ?", (binary_id,)).fetchall()
+        user_edge_rows = cur.execute("SELECT * FROM user_edges WHERE binary_id = ?", (binary_id,)).fetchall()
+        user_nodes = [
+            {"id": r["node_id"], "type": "note",
+             "position": {"x": r["position_x"], "y": r["position_y"]},
+             "data": json.loads(r["data"]) if r["data"] else {}}
+            for r in user_node_rows
+        ]
+        user_edges = [
+            {"id": r["edge_id"], "source": r["source"], "target": r["target"]}
+            for r in user_edge_rows
+        ]
+
         return {
+            "binary_id": binary_id,
             "name": meta["name"],
             "programInfo": {"meta": meta},
             "functions": functions,
             "decompiled": decompiled,
             "callGraph": call_graph,
             "cfgs": cfgs,
+            "userNodes": user_nodes,
+            "userEdges": user_edges,
         }
 
-    def save_graph(self, graph):
-        pass
+    def list_binaries(self):
+        self.con.row_factory = sqlite3.Row
+        cur = self.con.cursor()
+        rows = cur.execute(
+            "SELECT id, name, filepath, architecture, format, created_at FROM binaries ORDER BY created_at DESC"
+        ).fetchall()
+        return [
+            {"id": r["id"], "name": r["name"], "filepath": r["filepath"],
+             "architecture": r["architecture"], "format": r["format"],
+             "created_at": r["created_at"]}
+            for r in rows
+        ]
+
+    def save_graph(self, binary_id, user_nodes, user_edges):
+        self.cur.execute("DELETE FROM user_nodes WHERE binary_id = ?", (binary_id,))
+        self.cur.execute("DELETE FROM user_edges WHERE binary_id = ?", (binary_id,))
+        self._insert_user_nodes(binary_id, user_nodes)
+        self._insert_user_edges(binary_id, user_edges)
+        self.con.commit()

@@ -2,7 +2,7 @@
   CREATE TABLE IF NOT EXISTS binaries (                                                        
       id            INTEGER PRIMARY KEY AUTOINCREMENT,                           
       name          TEXT NOT NULL,                                               
-      filepath      TEXT NOT NULL UNIQUE,                                        
+      filepath      TEXT NOT NULL,                                        
       format        TEXT,                -- "MACHO" | "ELF" | "PE"               
       image_base    TEXT,                                                        
       entrypoint    TEXT,                                                        

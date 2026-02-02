@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const pythonManager = require('./python-manager');
 const wsClient = require('./websocket-client');
 const os = require("os");
@@ -88,6 +89,17 @@ const setupIPC = () => {
 
   ipcMain.on('ws-send-async', (event, command, data) => {
     wsClient.send(command, data)
+  });
+
+  // Save file dialog
+  ipcMain.handle('save-file', async (event, defaultName, content) => {
+    const result = await dialog.showSaveDialog(mainWindow, {
+      defaultPath: defaultName,
+      filters: [{ name: 'JSON', extensions: ['json'] }]
+    });
+    if (result.canceled) return false;
+    fs.writeFileSync(result.filePath, content, 'utf-8');
+    return true;
   });
 
   // writes data

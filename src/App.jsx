@@ -9,6 +9,10 @@ import NodePanel from './components/Canvas/nodePanels';
 import UploadBinaryPage from './components/Layout/UploadBinaryPage';
 import ToggleMainViews from './components/Layout/ToggleMainViews';
 import TerminalComponent from './components/Layout/terminal';
+import BinarySelectModal from './components/Sidebar/BinarySelectModal';
+import { useToast } from './components/Layout/Toast';
+import useGraphStore from './store/graphStore';
+import SaveGraphButton from './components/Layout/SaveGraphButton';
 
 function App() {
   const {
@@ -22,10 +26,13 @@ function App() {
 
   const [binaryPath, setBinaryPath] = useState(null);
   const [activeView, setActiveView] = useState('canvas');
+  const [showBinaryModal, setShowBinaryModal] = useState(false);
 
   const {activePanel, panelWidth, isResizing: isSidebarResizing} = useSideBarStore();
   const { activePanel: nodePanel, panelWidth: nodePanelWidth, isResizing } = useCFGNodeStore();
-  const { setAnalysisData: setStoreAnalysisData, setIsLoading: setStoreLoading } = useAnalysisStore();
+  const { setAnalysisData: setStoreAnalysisData, setIsLoading: setStoreLoading, setDbReady, setBinaryId } = useAnalysisStore();
+  const { showToast } = useToast();
+  const { addUserNode, addUserEdge, clearUserGraph } = useGraphStore();
 
   // Sync analysis data to store for use by other components
   useEffect(() => {
@@ -41,6 +48,9 @@ function App() {
     console.log('Opening file dialog...');
     const path = await window.electron.selectBinary();
     if (path) {
+      setDbReady(false);
+      setBinaryId(null);
+      clearUserGraph();
       setBinaryPath(path);
       console.log('Selected binary:', path);
     }
@@ -55,16 +65,17 @@ function App() {
     await analyzeBinary(binaryPath);
   };
 
-  // auto-run analysis after a file is chosen
+  // auto-run analysis after a file is chosen (skip if loaded from DB)
   useEffect(() => {
-    if (binaryPath) {
+    if (binaryPath && binaryPath !== 'loaded-from-db') {
       handleAnalyzeBinary();
     }
   }, [binaryPath]);
 
-  // send query to save all data to the backend 
+  // send query to save all data to the backend (skip if loaded from DB)
   useEffect(() => {
     if(!analysisData) return;
+    if(binaryPath === 'loaded-from-db') return;
     const { functions, decompiled, cfgs, callGraph, programInfo } = analysisData;
     if (!functions || !callGraph || !programInfo) return;
 
@@ -78,14 +89,46 @@ function App() {
     // check if decompiled and cfg count = funcs
     if ( decompiledCount >= total && cfgCount >= total ) {
       console.log('All data ready, sending to backend for DB save');
-      window.electron.sendAsync('analysis_store_ready', analysisData)
+      window.electron.sendAsync('analysis_store_ready', analysisData);
     }
   }, [analysisData])
+
+  // Listen for backend responses to unlock the UI and show notifications
+  useEffect(() => {
+    window.electron.onMessage((message) => {
+      if (message.type === 'analysis_saved') {
+        console.log('DB store complete, binary_id:', message.payload.binary_id);
+        setBinaryId(message.payload.binary_id);
+        setDbReady(true);
+        showToast('Analysis saved to database', 'success');
+      } else if (message.type === 'binary_loaded') {
+        setBinaryPath('loaded-from-db');
+        setBinaryId(message.payload.binary_id);
+        setDbReady(true);
+        // Clear old user nodes/edges before populating from DB
+        clearUserGraph();
+        // Populate graph store with saved user nodes/edges
+        if (message.payload.userNodes) {
+          message.payload.userNodes.forEach((n) => addUserNode(n));
+        }
+        if (message.payload.userEdges) {
+          message.payload.userEdges.forEach((e) => addUserEdge(e));
+        }
+        showToast('Binary loaded from database', 'success');
+      } else if (message.type === 'graph_saved') {
+        showToast('Graph saved', 'success');
+      } else if (message.type === 'error') {
+        console.error('Backend error:', message.payload.message);
+        showToast(message.payload.message, 'error');
+        setDbReady(true);
+      }
+    });
+  }, [])
 
 
   return (
     <div className="flex h-screen bg-primary">
-      <SideBar />
+      <SideBar onOpenBinaryModal={() => setShowBinaryModal(true)} />
       {/* Main content area - offset by sidebar width */}
       <> 
         <div className={`relative flex-1 h-screen overflow-hidden`}>
@@ -98,7 +141,7 @@ function App() {
                     : 'opacity-0 -translate-y-4 scale-95 blur-sm pointer-events-none'}
                 `}
               >
-                <UploadBinaryPage onSelectBinary={handleSelectBinary} />
+                <UploadBinaryPage onSelectBinary={handleSelectBinary} onSelectPreviousBinary={() => setShowBinaryModal(true)} />
               </div>
 
               {/* Main App - Title + Toggle */}
@@ -113,6 +156,7 @@ function App() {
                 </h1>
                 <ToggleMainViews activeView={activeView} onToggle={setActiveView} />
               </div>
+
 
               {/* Canvas View */}
               <div
@@ -154,6 +198,13 @@ function App() {
                 </div>
             </div>
           </>
+
+      {showBinaryModal && (
+        <BinarySelectModal
+          onClose={() => setShowBinaryModal(false)}
+          onUploadNew={handleSelectBinary}
+        />
+      )}
     </div>
   );
 };

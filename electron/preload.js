@@ -36,6 +36,9 @@ contextBridge.exposeInMainWorld('electron', {
     ipcRenderer.on('ws-status', (event, status) => callback(status));
   },
 
+  // Save file dialog
+  saveFile: (defaultName, content) => ipcRenderer.invoke('save-file', defaultName, content),
+
   // Remove listeners (for cleanup)
   removeAllListeners: (channel) => {
     ipcRenderer.removeAllListeners(channel);

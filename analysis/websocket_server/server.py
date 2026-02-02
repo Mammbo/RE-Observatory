@@ -52,6 +52,12 @@ class AnalysisWebSocketServer:
         try:
             await self.send(websocket, "analysis_started", {"path": binary_path})
 
+            # Close the previous program/decompiler before opening a new one
+            if self.ghidra_manager.decompiler is not None:
+                self.ghidra_manager.close_decompiler()
+            if self.ghidra_manager.current_program is not None:
+                self.ghidra_manager.close_program()
+
             # Initialize AnalysisManager for this binary
             self.binary_path = binary_path
             try:
@@ -169,7 +175,25 @@ class AnalysisWebSocketServer:
         except Exception as e:
             await self.error(websocket, f"Decompilation failed: {e}")
 
-    #database handler
+    # database handlers
+    async def handle_list_binaries(self, websocket):
+        try:
+            binaries = self.db.list_binaries()
+            await self.send(websocket, "binary_list", {"binaries": binaries})
+        except Exception as e:
+            await self.error(websocket, f"Failed to list binaries: {e}")
+
+    async def handle_load_binary(self, websocket, binary_id):
+        try:
+            if not binary_id:
+                return await self.error(websocket, "binary_id is required")
+            data = self.db.get_binary(binary_id)
+            if data is None:
+                return await self.error(websocket, f"Binary {binary_id} not found")
+            await self.send(websocket, "binary_loaded", data)
+        except Exception as e:
+            await self.error(websocket, f"Failed to load binary: {e}")
+
     async def handle_store_ready(self, websocket, data):
         try:
             binary_id = self.db.save_analysis(data)
@@ -179,6 +203,19 @@ class AnalysisWebSocketServer:
             import traceback
             traceback.print_exc()
             await self.error(websocket, f"Failed to save analysis: {e}")
+
+    async def handle_save_graph(self, websocket, data):
+        try:
+            binary_id = data.get("binary_id")
+            if not binary_id:
+                return await self.error(websocket, "binary_id is required")
+            user_nodes = data.get("userNodes", [])
+            user_edges = data.get("userEdges", [])
+            self.db.save_graph(binary_id, user_nodes, user_edges)
+            await self.send(websocket, "graph_saved", {"binary_id": binary_id})
+            print(f"Graph saved for binary_id={binary_id}")
+        except Exception as e:
+            await self.error(websocket, f"Failed to save graph: {e}")
 
     # -----------------------------
     # Graph Handlers
@@ -269,8 +306,17 @@ class AnalysisWebSocketServer:
                 elif command == "get_call_graph":
                     await self.handle_get_call_graph(websocket)
                 
-                elif command == "analysis_store_ready": 
+                elif command == "analysis_store_ready":
                     await self.handle_store_ready(websocket, data)
+
+                elif command == "list_binaries":
+                    await self.handle_list_binaries(websocket)
+
+                elif command == "load_binary":
+                    await self.handle_load_binary(websocket, data.get("binary_id"))
+
+                elif command == "save_graph":
+                    await self.handle_save_graph(websocket, data)
 
                 # Unknown command
                 else:
@@ -290,10 +336,6 @@ class AnalysisWebSocketServer:
                     await self.analysis_task
                 except asyncio.CancelledError:
                     pass
-            if self.ghidra_manager and self.ghidra_manager.current_program:
-                self.ghidra_manager.close_decompiler()
-                self.ghidra_manager.close_program()
-                print("Ghidra program closed")
 
     # -----------------------------
     # Server Lifecycle

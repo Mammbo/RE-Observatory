@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './styles/index.css';
 import App from './App.jsx';
+import { ToastProvider } from './components/Layout/Toast';
 
 // Suppress benign ResizeObserver loop error (common with React Flow)
 const resizeObserverErrHandler = (e) => {
@@ -18,6 +19,8 @@ window.addEventListener('unhandledrejection', resizeObserverErrHandler);
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+    <ToastProvider>
+      <App />
+    </ToastProvider>
   </React.StrictMode>
 );

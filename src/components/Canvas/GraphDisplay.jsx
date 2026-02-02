@@ -16,6 +16,7 @@ import { resolveCollisions } from './resolveCollisions';
 import { bfsFromRoot, getMaxDepth } from './bfsNode';
 import useHighlight from './useHighlight';
 import ELK from 'elkjs/lib/elk.bundled.js'
+import SaveGraphButton from '../Layout/SaveGraphButton';
 
 
 // initalize ELKGraph 
@@ -357,6 +358,7 @@ const CanvasView = () => {
                                     setDepthLimit(max);
                                 }}
                             />
+                            <SaveGraphButton />
                         </Panel>
                         <MiniMap nodeStrokeWidth={3} zoomable pannable />
                         <Background />
