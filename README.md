@@ -6,7 +6,7 @@ Built with Electron, React, Python, Ghidra, LIEF, FLOSS, x-term and node-pty.
 
 ## Demo
 
-![Demo Video](https://github.com/user-attachments/assets/2b488a83-a17c-457f-bf5a-e6d1373297dc)
+https://github.com/user-attachments/assets/2b488a83-a17c-457f-bf5a-e6d1373297dc
 
 ## Prerequisites
 
@@ -101,7 +101,3 @@ Output goes to the `out/` directory. On macOS this produces a `.zip`, on Linux `
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-## License
-
-[ISC](https://choosealicense.com/licenses/isc/)
