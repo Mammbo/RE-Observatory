@@ -1,7 +1,7 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
-const  { app } = require('electron');
+const { app } = require('electron');
 
 
 class PythonManager { 
@@ -79,10 +79,14 @@ class PythonManager {
 
         console.log(`Starting Python server: ${pythonPath}:${scriptPath}`);
 
+        const userDataPath = app.getPath('userData');
+        const dbPath = path.join(userDataPath, 'analysis_and_graph.db');
+
         this.process = spawn(pythonPath, [scriptPath], {
             env: {
                 ...process.env,
                 GHIDRA_INSTALL_DIR: ghidraInstall,
+                RE_OBSERVATORY_DB_PATH: dbPath,
                 PYTHONUNBUFFERED: '1'  // Disable output buffering
             },
             stdio: ['pipe', 'pipe', 'pipe']

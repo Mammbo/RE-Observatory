@@ -1,10 +1,12 @@
 import sqlite3
 from pathlib import Path
 import json
+import os
 class DBManager:
     def __init__(self, db_path=None):
         if db_path is None:
-            db_path = Path(__file__).parent / "analysis_and_graph.db"
+            db_path = os.environ.get("RE_OBSERVATORY_DB_PATH",
+                                     Path(__file__).parent / "analysis_and_graph.db")
         self.con = sqlite3.connect(db_path)
         self.cur = self.con.cursor()
         self.con.execute("PRAGMA foreign_keys = ON")                           

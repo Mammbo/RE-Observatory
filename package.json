@@ -8,13 +8,14 @@
   },
   "scripts": {
     "start": "electron-forge start",
-    "dev": "webpack serve --mode development",
+    "dev": "webpack serve --mode developfament",
     "dev:electron": "NODE_ENV=development concurrently \"npm run dev\" \"wait-on http://localhost:8080 && electron .\"",
     "build": "webpack --mode production",
     "build:all": "npm run build && npm run make",
     "test": "echo \"Error: no test specified\" && exit 1",
     "package": "electron-forge package",
-    "make": "electron-forge make"
+    "make": "electron-forge make",
+    "publish": "electron-forge publish"
   },
   "repository": {
     "type": "git",
@@ -38,6 +39,7 @@
     "@electron-forge/maker-zip": "^7.11.1",
     "@electron-forge/plugin-auto-unpack-natives": "^7.11.1",
     "@electron-forge/plugin-fuses": "^7.11.1",
+    "@electron-forge/publisher-github": "^7.11.1",
     "@electron/fuses": "^1.8.0",
     "babel-loader": "^10.0.0",
     "concurrently": "^9.2.1",
@@ -79,6 +81,8 @@
     "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
     "tailwindcss": "^4.1.18",
+    "update-electron-app": "^3.1.2",
+    "ws": "^8.19.0",
     "xterm": "^5.3.0",
     "zustand": "^5.0.9"
   }

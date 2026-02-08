@@ -4,16 +4,13 @@ const fs = require('fs');
 const pythonManager = require('./python-manager');
 const wsClient = require('./websocket-client');
 const os = require("os");
-const pty = require("node-pty")
-require('dotenv').config(); 
+const pty = require("node-pty");
+const { updateElectronApp } = require('update-electron-app');
+updateElectronApp();
+require('dotenv').config();
 
-// inline if statement
-try { 
-  var shell = os.platform() === "win32" ? "powershell.exe" : process.env.SHELL;
-  console.log(`SHELL: ${shell}`)
-} catch { 
-  console.log("error")
-}
+var shell = os.platform() === "win32" ? "powershell.exe" : (process.env.SHELL || "/bin/zsh");
+console.log(`SHELL: ${shell}`);
 
 let mainWindow;
 let ptyProcess;
@@ -51,21 +48,23 @@ const createWindow= () => {
 
   // spawn pty and forward output to renderer
   try {
-    ptyProcess = pty.spawn(shell, [], {
+    ptyProcess = pty.spawn(shell, os.platform() === "win32" ? [] : ["-l"], {
       name: "xterm-color",
       cols: 80,
       rows: 24,
-      cwd: process.env.HOME,
+      cwd: os.homedir(),
       env: process.env
     });
     console.log('✓ PTY spawned successfully');
+
+    ptyProcess.on("data", function(data) {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("terminal.incData", data);
+      }
+    });
   } catch (e) {
     console.error('✗ PTY spawn failed:', e.message);
   }
-
-  ptyProcess.on("data", function(data) {
-      mainWindow.webContents.send("terminal.incData", data);
-  })
 }
 
 //setUp IPC handlers
@@ -154,13 +153,17 @@ app.whenReady().then(async () => {
     });
 });
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    pythonManager.stop();
-    wsClient.close();
-    app.quit();
+app.on('before-quit', () => {
+  if (ptyProcess) {
+    try { ptyProcess.kill(); } catch (e) { /* already dead */ }
+    ptyProcess = null;
   }
+  wsClient.close();
+  pythonManager.stop();
 });
 
+app.on('window-all-closed', () => {
+  app.quit();
+});
 
 console.log('Electron main process started');
