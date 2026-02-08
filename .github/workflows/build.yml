@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
 
@@ -27,12 +28,20 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install Python dependencies
+      - name: Install Python dependencies (macOS/Linux)
+        if: runner.os != 'Windows'
         run: |
           python -m venv venv
           source venv/bin/activate
           pip install -r requirements.txt
-        shell: bash
+
+      - name: Install Python dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          python -m venv venv
+          venv\Scripts\activate
+          pip install -r requirements.txt
+        shell: cmd
 
       - name: Download Ghidra
         run: |
