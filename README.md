@@ -96,7 +96,7 @@ Output goes to the `out/` directory. On macOS this produces a `.zip`, on Linux `
 
 ## Credits
 
-<!-- Add credits and attributions here -->
+Thank you to the [Lief Project](https://github.com/lief-project/LIEF), [NSA w/ PyGhidra](https://pypi.org/project/pyghidra/), [the FLARE team w/ FLOSS](https://github.com/mandiant/flare-floss), [radare2 community](https://github.com/radareorg/radare2?tab=readme-ov-file)
 
 ## Contributing
 
